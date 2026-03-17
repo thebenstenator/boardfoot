@@ -5,6 +5,8 @@
  * All slices import from here — do not define BOM types anywhere else.
  */
 
+import { LengthUnit } from "@/lib/calculations/boardFeet"
+
 // ─── Lumber ───────────────────────────────────────────────────────────────────
 
 export type PricingMode = 'per_bf' | 'per_lf'
@@ -24,6 +26,7 @@ export interface LumberItem {
   notes: string
   sort_order: number
   created_at: string
+  length_unit: LengthUnit
 }
 
 // ─── Hardware ─────────────────────────────────────────────────────────────────

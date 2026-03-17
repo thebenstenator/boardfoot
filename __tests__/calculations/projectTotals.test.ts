@@ -37,6 +37,7 @@ const makeLumberItem = (overrides: Partial<LumberItem> = {}): LumberItem => ({
   notes: '',
   sort_order: 0,
   created_at: '2024-01-01',
+  length_unit: 'ft',
   ...overrides,
 })
 

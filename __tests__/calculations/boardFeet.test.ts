@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   calculateBoardFeet,
+  calculateBoardFeetFlexible,
+  toLengthFt,
   lumberLineCost,
   convertLFtoBFPrice,
 } from '@/lib/calculations/boardFeet'
@@ -41,5 +43,30 @@ describe('convertLFtoBFPrice', () => {
     // 2x4 actual = 1.5" × 3.5"
     // $1.00/LF → $1.00 × 12 / (1.5 × 3.5) = $2.286/BF
     expect(convertLFtoBFPrice(1.0, 1.5, 3.5)).toBeCloseTo(2.286, 2)
+  })
+})
+
+describe('toLengthFt', () => {
+  it('returns value unchanged for feet', () => {
+    expect(toLengthFt(8, 'ft')).toBe(8)
+  })
+
+  it('converts inches to feet', () => {
+    expect(toLengthFt(96, 'in')).toBe(8)
+    expect(toLengthFt(12, 'in')).toBe(1)
+    expect(toLengthFt(6, 'in')).toBe(0.5)
+  })
+})
+
+describe('calculateBoardFeetFlexible', () => {
+  it('produces same result whether length entered in feet or inches', () => {
+    const inFeet = calculateBoardFeetFlexible(1, 6, 8, 'ft')
+    const inInches = calculateBoardFeetFlexible(1, 6, 96, 'in')
+    expect(inFeet).toBeCloseTo(inInches, 6)
+  })
+
+  it('calculates correctly with inch input', () => {
+    // 1" × 6" × 96" = 4 BF
+    expect(calculateBoardFeetFlexible(1, 6, 96, 'in')).toBeCloseTo(4.0, 2)
   })
 })
