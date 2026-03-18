@@ -5,7 +5,7 @@
  * This uses ROUGH thickness (e.g. 4/4 lumber = 1.0", not the milled 0.75")
  */
 
-export type LengthUnit = 'ft' | 'in'
+import type { LengthUnit } from '@/types/bom'
 
 /**
  * Convert a length value to feet regardless of input unit

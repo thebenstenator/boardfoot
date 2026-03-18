@@ -1,4 +1,5 @@
-import { calculateBoardFeet, lumberLineCost, convertLFtoBFPrice } from './boardFeet'
+import { calculateBoardFeet, lumberLineCost, convertLFtoBFPrice, calculateBoardFeetFlexible } from './boardFeet'
+import type { LengthUnit } from '@/types/bom'
 import { applyWasteFactor, wasteAdjustedCost } from './wasteFactor'
 import { finishLineCost } from './finishFraction'
 import { suggestedEtsyPrice } from './etsyFees'
@@ -27,11 +28,12 @@ function calcLumberTotals(
       item.waste_override !== null ? item.waste_override : projectWasteFactor
 
     // Calculate board feet for one piece
-    const bfPerPiece = calculateBoardFeet(
-      item.thickness_in,
-      item.width_in,
-      item.length_ft
-    )
+ const bfPerPiece = calculateBoardFeetFlexible(
+  item.thickness_in,
+  item.width_in,
+  item.length_ft,
+  (item.length_unit ?? 'ft') as LengthUnit
+)
     const bfTotal = bfPerPiece * item.quantity
     boardFeetNet += bfTotal
 

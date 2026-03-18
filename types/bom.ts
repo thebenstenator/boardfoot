@@ -5,7 +5,7 @@
  * All slices import from here — do not define BOM types anywhere else.
  */
 
-import { LengthUnit } from "@/lib/calculations/boardFeet"
+export type LengthUnit = 'ft' | 'in'
 
 // ─── Lumber ───────────────────────────────────────────────────────────────────
 

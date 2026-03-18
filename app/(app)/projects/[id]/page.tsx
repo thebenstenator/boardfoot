@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
+import { ProjectShell } from '@/components/project/ProjectShell'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -20,10 +21,5 @@ export default async function ProjectPage({ params }: Props) {
 
   if (!project) notFound()
 
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{project.name}</h1>
-      <p className="text-muted-foreground">BOM editor coming soon.</p>
-    </div>
-  )
+  return <ProjectShell projectId={id} />
 }
