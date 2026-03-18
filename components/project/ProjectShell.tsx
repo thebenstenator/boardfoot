@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import { useProjectStore } from '@/store/projectStore'
 import { LumberSection } from '@/components/bom/LumberSection'
+import { HardwareSection } from '@/components/bom/HardwareSection'
+import { FinishSection } from '@/components/bom/FinishSection'
 
 interface ProjectShellProps {
   projectId: string
@@ -32,9 +34,11 @@ export function ProjectShell({ projectId }: ProjectShellProps) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <h1 className="text-2xl font-bold">{project.name}</h1>
       <LumberSection projectId={projectId} />
+      <HardwareSection projectId={projectId} />
+      <FinishSection projectId={projectId} />
     </div>
   )
 }

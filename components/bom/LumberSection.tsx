@@ -171,7 +171,8 @@ export function LumberSection({ projectId }: LumberSectionProps) {
               </thead>
               <tbody>
                 {items.map((item, rowIndex) => {
-                  const baseTab = rowIndex * TAB_STOPS_PER_ROW + 1
+                  const TAB_OFFSET = 100
+                  const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET
                   const bf = calculateBoardFeetFlexible(
                     item.thickness_in,
                     item.width_in,

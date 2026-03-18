@@ -52,7 +52,10 @@ export interface FinishItem {
   project_id: string
   description: string
   container_cost: number
-  fraction_used: number      // 0.0 to 1.0
+  container_size: number | null   // total size of container
+  amount_used: number | null      // how much used on this project
+  unit: string                    // oz, ml, sheets, etc.
+  fraction_used: number           // calculated from amount_used/container_size, or entered directly
   notes: string
   sort_order: number
   created_at: string
