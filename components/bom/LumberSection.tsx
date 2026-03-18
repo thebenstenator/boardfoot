@@ -80,13 +80,16 @@ function LengthCell({
   tabIndex,
 }: LengthCellProps) {
   return (
-    <div className="flex items-center gap-0.5">
-      <EditableCell
-        value={length}
-        onChange={onLengthChange}
+    <div className="flex items-center mr-10">
+      <input
         type="number"
-        className="w-12"
+        defaultValue={length}
+        key={length}
+        onBlur={(e) => onLengthChange(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
         tabIndex={tabIndex}
+        className="w-12 bg-transparent border border-transparent rounded px-1 py-0.5 text-sm
+          focus:outline-none focus:border-ring focus:bg-background hover:border-border"
       />
       <button
         onClick={onUnitToggle}
@@ -112,7 +115,6 @@ export function LumberSection({ projectId }: LumberSectionProps) {
   const wasteFactor = project?.waste_factor ?? 0.15
   const wastePercent = Math.round(wasteFactor * 100)
 
-  // Number of tab stops per row — species, T, W, length, unit, qty, mode, price, delete = 9
   const TAB_STOPS_PER_ROW = 9
 
   function handleUpdate(id: string, field: keyof LumberItem, raw: string) {
@@ -124,21 +126,15 @@ export function LumberSection({ projectId }: LumberSectionProps) {
     updateItem(id, { [field]: value } as Partial<LumberItem>)
   }
 
-function handleUnitToggle(item: LumberItem) {
-  if (item.length_unit === 'ft') {
-    const newLength = parseFloat((item.length_ft * 12).toFixed(3))
-    updateItem(item.id, {
-      length_unit: 'in',
-      length_ft: newLength,
-    })
-  } else {
-    const newLength = parseFloat((item.length_ft / 12).toFixed(3))
-    updateItem(item.id, {
-      length_unit: 'ft',
-      length_ft: newLength,
-    })
+  function handleUnitToggle(item: LumberItem) {
+    if (item.length_unit === 'ft') {
+      const newLength = parseFloat((item.length_ft * 12).toFixed(3))
+      updateItem(item.id, { length_unit: 'in', length_ft: newLength })
+    } else {
+      const newLength = parseFloat((item.length_ft / 12).toFixed(3))
+      updateItem(item.id, { length_unit: 'ft', length_ft: newLength })
+    }
   }
-}
 
   function formatCurrency(n: number) {
     return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
@@ -177,11 +173,11 @@ function handleUnitToggle(item: LumberItem) {
                 {items.map((item, rowIndex) => {
                   const baseTab = rowIndex * TAB_STOPS_PER_ROW + 1
                   const bf = calculateBoardFeetFlexible(
-                        item.thickness_in,
-                        item.width_in,
-                        item.length_ft,
-                        (item.length_unit ?? 'ft') as LengthUnit
-                    )
+                    item.thickness_in,
+                    item.width_in,
+                    item.length_ft,
+                    (item.length_unit ?? 'ft') as LengthUnit
+                  )
                   const totalBF = bf * item.quantity
                   const lineCost = totalBF * item.price_per_unit
 
