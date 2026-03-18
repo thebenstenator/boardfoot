@@ -70,5 +70,3 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER projects_updated_at
   BEFORE UPDATE ON projects
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
---   add length_unit to migration at Slice 1B
