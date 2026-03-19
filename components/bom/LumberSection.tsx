@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useLumberItems } from '@/hooks/useLineItems'
-import { calculateBoardFeetFlexible } from '@/lib/calculations/boardFeet'
+import { calculateBoardFeetFlexible, convertLFtoBFPrice } from '@/lib/calculations/boardFeet'
+import { applyWasteFactor } from '@/lib/calculations/wasteFactor'
 import { useProjectStore } from '@/store/projectStore'
 import type { LumberItem, LengthUnit } from '@/types/bom'
 import { Button } from '@/components/ui/button'
@@ -12,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { bomSection, bomSectionHeader, bomHeader, bomRow, col } from './bomStyles'
 
 interface EditableCellProps {
   value: string | number
@@ -42,9 +44,7 @@ function EditableCell({
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') {
-      e.currentTarget.blur()
-    }
+    if (e.key === 'Enter') e.currentTarget.blur()
   }
 
   return (
@@ -56,50 +56,10 @@ function EditableCell({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       tabIndex={tabIndex}
-      className={`w-full bg-transparent border border-transparent rounded px-1 py-0.5 text-sm 
+      className={`w-full bg-transparent border border-transparent rounded px-1 py-0.5 text-sm
         focus:outline-none focus:border-ring focus:bg-background
-        hover:border-border
-        ${className}`}
+        hover:border-border ${className}`}
     />
-  )
-}
-
-interface LengthCellProps {
-  length: number
-  unit: LengthUnit
-  onLengthChange: (value: string) => void
-  onUnitToggle: () => void
-  tabIndex?: number
-}
-
-function LengthCell({
-  length,
-  unit,
-  onLengthChange,
-  onUnitToggle,
-  tabIndex,
-}: LengthCellProps) {
-  return (
-    <div className="flex items-center mr-10">
-      <input
-        type="number"
-        defaultValue={length}
-        key={length}
-        onBlur={(e) => onLengthChange(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-        tabIndex={tabIndex}
-        className="w-12 bg-transparent border border-transparent rounded px-1 py-0.5 text-sm
-          focus:outline-none focus:border-ring focus:bg-background hover:border-border"
-      />
-      <button
-        onClick={onUnitToggle}
-        tabIndex={tabIndex !== undefined ? tabIndex + 1 : undefined}
-        className="cursor-pointer text-xs border rounded px-1.5 py-0.5 hover:bg-accent 
-          focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
-      >
-        {unit}
-      </button>
-    </div>
   )
 }
 
@@ -115,6 +75,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
   const wasteFactor = project?.waste_factor ?? 0.15
   const wastePercent = Math.round(wasteFactor * 100)
 
+  const TAB_OFFSET = 100
   const TAB_STOPS_PER_ROW = 9
 
   function handleUpdate(id: string, field: keyof LumberItem, raw: string) {
@@ -128,22 +89,57 @@ export function LumberSection({ projectId }: LumberSectionProps) {
 
   function handleUnitToggle(item: LumberItem) {
     if (item.length_unit === 'ft') {
-      const newLength = parseFloat((item.length_ft * 12).toFixed(3))
-      updateItem(item.id, { length_unit: 'in', length_ft: newLength })
+      updateItem(item.id, {
+        length_unit: 'in',
+        length_ft: parseFloat((item.length_ft * 12).toFixed(3)),
+      })
     } else {
-      const newLength = parseFloat((item.length_ft / 12).toFixed(3))
-      updateItem(item.id, { length_unit: 'ft', length_ft: newLength })
+      updateItem(item.id, {
+        length_unit: 'ft',
+        length_ft: parseFloat((item.length_ft / 12).toFixed(3)),
+      })
     }
+  }
+
+  function getLineBF(item: LumberItem): number {
+    const bf = calculateBoardFeetFlexible(
+      item.thickness_in,
+      item.width_in,
+      item.length_ft,
+      (item.length_unit ?? 'ft') as LengthUnit
+    )
+    return bf * item.quantity
+  }
+
+  function getLineTotal(item: LumberItem): number {
+    const bf = getLineBF(item)
+    if (item.pricing_mode === 'per_lf') {
+      const bfPrice = convertLFtoBFPrice(
+        item.price_per_unit,
+        item.thickness_in,
+        item.width_in
+      )
+      return bf * bfPrice
+    }
+    return bf * item.price_per_unit
   }
 
   function formatCurrency(n: number) {
     return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
   }
 
+  // Waste footer calculations
+  const netBF = totals.lumber.boardFeetNet
+  const adjustedBF = applyWasteFactor(netBF, wasteFactor)
+  const extraBF = adjustedBF - netBF
+  const netCost = totals.lumber.netCost
+  const adjustedCost = totals.lumber.adjustedCost
+  const extraCost = adjustedCost - netCost
+
   return (
     <TooltipProvider>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
+      <div className={bomSection}>
+        <div className={bomSectionHeader}>
           <h2 className="text-lg font-semibold">Lumber</h2>
           <Button size="sm" onClick={addItem}>+ Add lumber</Button>
         </div>
@@ -153,142 +149,142 @@ export function LumberSection({ projectId }: LumberSectionProps) {
             No lumber added yet. Click "+ Add lumber" to start.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground text-xs">
-                  <th className="text-left py-2 px-1 font-medium">Species</th>
-                  <th className="text-left py-2 px-1 font-medium">T (in)</th>
-                  <th className="text-left py-2 px-1 font-medium">W (in)</th>
-                  <th className="text-left py-2 px-1 font-medium">Length</th>
-                  <th className="text-left py-2 px-1 font-medium">Qty</th>
-                  <th className="text-left py-2 px-1 font-medium">Mode</th>
-                  <th className="text-left py-2 px-1 font-medium">$/unit</th>
-                  <th className="text-right py-2 px-1 font-medium">BF</th>
-                  <th className="text-right py-2 px-1 font-medium">Cost</th>
-                  <th className="py-2 px-1"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, rowIndex) => {
-                  const TAB_OFFSET = 100
-                  const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET
-                  const bf = calculateBoardFeetFlexible(
-                    item.thickness_in,
-                    item.width_in,
-                    item.length_ft,
-                    (item.length_unit ?? 'ft') as LengthUnit
-                  )
-                  const totalBF = bf * item.quantity
-                  const lineCost = totalBF * item.price_per_unit
+          <div>
+            {/* Header row */}
+            <div className={bomHeader}>
+              <span className={col.first}>Species</span>
+              <span className={col.sm}>Thickness</span>
+              <span className={col.sm}>Width</span>
+              <span className={`${col.md} flex items-center gap-1`}>Length</span>
+              <span className={col.toggle}></span>
+              <span className={col.sm}>Qty</span>
+              <span className={col.toggle}>Mode</span>
+              <span className={col.lg}>$/unit</span>
+              <span className={col.sm}>BF</span>
+              <span className={col.last}>Total</span>
+              <span className={col.delete}></span>
+            </div>
 
-                  return (
-                    <tr key={item.id} className="border-b hover:bg-muted/30">
-                      <td className="py-1 px-1">
-                        <EditableCell
-                          value={item.species}
-                          onChange={(v) => handleUpdate(item.id, 'species', v)}
-                          tabIndex={baseTab}
-                        />
-                      </td>
-                      <td className="py-1 px-1">
-                        <EditableCell
-                          value={item.thickness_in}
-                          onChange={(v) => handleUpdate(item.id, 'thickness_in', v)}
-                          type="number"
-                          tabIndex={baseTab + 1}
-                        />
-                      </td>
-                      <td className="py-1 px-1">
-                        <EditableCell
-                          value={item.width_in}
-                          onChange={(v) => handleUpdate(item.id, 'width_in', v)}
-                          type="number"
-                          tabIndex={baseTab + 2}
-                        />
-                      </td>
-                      <td className="py-1 px-1">
-                        <LengthCell
-                          length={item.length_ft}
-                          unit={item.length_unit as LengthUnit}
-                          onLengthChange={(v) => handleUpdate(item.id, 'length_ft', v)}
-                          onUnitToggle={() => handleUnitToggle(item)}
-                          tabIndex={baseTab + 3}
-                        />
-                      </td>
-                      <td className="py-1 px-1">
-                        <EditableCell
-                          value={item.quantity}
-                          onChange={(v) => handleUpdate(item.id, 'quantity', v)}
-                          type="number"
-                          tabIndex={baseTab + 5}
-                        />
-                      </td>
-                      <td className="py-1 px-1">
-                        <button
-                          onClick={() => updateItem(item.id, {
-                            pricing_mode: item.pricing_mode === 'per_bf' ? 'per_lf' : 'per_bf'
-                          })}
-                          tabIndex={baseTab + 6}
-                          className="cursor-pointer text-xs border rounded px-1.5 py-0.5 
-                            hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring"
-                        >
-                          {item.pricing_mode === 'per_bf' ? '$/BF' : '$/LF'}
-                        </button>
-                      </td>
-                      <td className="py-1 px-1">
-                        <EditableCell
-                          value={item.price_per_unit}
-                          onChange={(v) => handleUpdate(item.id, 'price_per_unit', v)}
-                          type="number"
-                          tabIndex={baseTab + 7}
-                        />
-                      </td>
-                      <td className="py-1 px-1 text-right text-muted-foreground">
-                        {totalBF.toFixed(2)}
-                      </td>
-                      <td className="py-1 px-1 text-right">
-                        {formatCurrency(lineCost)}
-                      </td>
-                      <td className="py-1 px-1">
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          tabIndex={baseTab + 8}
-                          className="cursor-pointer text-muted-foreground hover:text-destructive 
-                            text-xs px-1 focus:outline-none focus:ring-1 focus:ring-ring rounded"
-                        >
-                          ✕
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+            {/* Item rows */}
+            {items.map((item, rowIndex) => {
+              const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET
+              const totalBF = getLineBF(item)
+              const lineTotal = getLineTotal(item)
 
-        {items.length > 0 && (
-          <div className="flex justify-end gap-6 text-sm pt-1">
-            <span className="text-muted-foreground">
-              Net: {formatCurrency(totals.lumber.netCost)}
-            </span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="font-medium cursor-help border-b border-dashed border-muted-foreground">
-                  Adjusted for {wastePercent}% waste:{' '}
-                  {formatCurrency(totals.lumber.adjustedCost)}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>
-                  Waste factor uses margin math: you need to purchase{' '}
-                  {formatCurrency(totals.lumber.adjustedCost)} worth of lumber
-                  to end up with {formatCurrency(totals.lumber.netCost)} of
-                  usable material after waste.
-                </p>
-              </TooltipContent>
-            </Tooltip>
+              return (
+                <div key={item.id} className={`${bomRow} border-b hover:bg-muted/30`}>
+                  <div className={col.first}>
+                    <EditableCell
+                      value={item.species}
+                      onChange={(v) => handleUpdate(item.id, 'species', v)}
+                      tabIndex={baseTab}
+                    />
+                  </div>
+                  <div className={col.sm}>
+                    <EditableCell
+                      value={item.thickness_in}
+                      onChange={(v) => handleUpdate(item.id, 'thickness_in', v)}
+                      type="number"
+                      tabIndex={baseTab + 1}
+                    />
+                  </div>
+                  <div className={col.sm}>
+                    <EditableCell
+                      value={item.width_in}
+                      onChange={(v) => handleUpdate(item.id, 'width_in', v)}
+                      type="number"
+                      tabIndex={baseTab + 2}
+                    />
+                  </div>
+                  <div className={`${col.md} flex items-center mr-2`}>
+                    <input
+                      type="number"
+                      defaultValue={item.length_ft}
+                      key={item.length_ft}
+                      onBlur={(e) => handleUpdate(item.id, 'length_ft', e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                      tabIndex={baseTab + 3}
+                      className="w-12 bg-transparent border border-transparent rounded px-1 py-0.5
+                        text-sm focus:outline-none focus:border-ring focus:bg-background
+                        hover:border-border"
+                    />
+                    <button
+                      onClick={() => handleUnitToggle(item)}
+                      tabIndex={baseTab + 4}
+                      className="cursor-pointer text-xs border rounded px-1.5 py-0.5
+                        hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
+                    >
+                      {item.length_unit ?? 'ft'}
+                    </button>
+                  </div>
+                  <div className={col.sm}>
+                    <EditableCell
+                      value={item.quantity}
+                      onChange={(v) => handleUpdate(item.id, 'quantity', v)}
+                      type="number"
+                      tabIndex={baseTab + 5}
+                    />
+                  </div>
+                  <div className={col.toggle}>
+                    <button
+                      onClick={() => updateItem(item.id, {
+                        pricing_mode: item.pricing_mode === 'per_bf' ? 'per_lf' : 'per_bf'
+                      })}
+                      tabIndex={baseTab + 6}
+                      className="cursor-pointer text-xs border rounded px-1.5 py-0.5
+                        hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring"
+                    >
+                      {item.pricing_mode === 'per_bf' ? 'BF' : 'LF'}
+                    </button>
+                  </div>
+                  <div className={col.lg}>
+                    <EditableCell
+                      value={item.price_per_unit}
+                      onChange={(v) => handleUpdate(item.id, 'price_per_unit', v)}
+                      type="number"
+                      tabIndex={baseTab + 7}
+                    />
+                  </div>
+                  <div className={`${col.sm} text-muted-foreground text-sm`}>
+                    {totalBF.toFixed(2)}
+                  </div>
+                  <div className={`${col.last} text-sm`}>
+                    {formatCurrency(lineTotal)}
+                  </div>
+                  <div className={col.delete}>
+                    <button
+                      onClick={() => removeItem(item.id)}
+                      tabIndex={baseTab + 8}
+                      className="cursor-pointer text-muted-foreground hover:text-destructive
+                        text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Waste footer */}
+            <div className="flex justify-end items-center gap-6 text-sm pt-3">
+              <span className="text-muted-foreground">
+                Net: {netBF.toFixed(2)} BF — {formatCurrency(netCost)}
+              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="font-medium cursor-help border-b border-dashed border-muted-foreground">
+                    Buy {adjustedBF.toFixed(2)} BF (+{extraBF.toFixed(2)} BF) for {wastePercent}% waste — {formatCurrency(adjustedCost)} (+{formatCurrency(extraCost)})
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>
+                    To end up with {netBF.toFixed(2)} BF of usable material after {wastePercent}% waste,
+                    you need to purchase {adjustedBF.toFixed(2)} BF.
+                    That's {extraBF.toFixed(2)} extra BF costing an additional {formatCurrency(extraCost)}.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         )}
       </div>

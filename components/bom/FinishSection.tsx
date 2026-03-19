@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { bomSection, bomSectionHeader, bomHeader, bomRow, col } from './bomStyles'
 
 const FINISH_UNITS = ['oz', 'fl oz', 'ml', 'L', 'qt', 'gal', 'sheets', 'roll']
 
@@ -71,6 +72,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
   const { items, addItem, updateItem, removeItem } = useFinishItems(projectId)
   const totals = useProjectStore((state) => state.totals)
 
+  const TAB_OFFSET = 900
   const TAB_STOPS_PER_ROW = 5
 
   function handleUpdate(id: string, field: keyof FinishItem, raw: string) {
@@ -102,8 +104,8 @@ export function FinishSection({ projectId }: FinishSectionProps) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
+    <div className={bomSection}>
+      <div className={bomSectionHeader}>
         <h2 className="text-lg font-semibold">Finishing Materials</h2>
         <Button size="sm" onClick={addItem}>+ Add finish</Button>
       </div>
@@ -113,101 +115,93 @@ export function FinishSection({ projectId }: FinishSectionProps) {
           No finishing materials added yet. Click "+ Add finish" to start.
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-muted-foreground text-xs">
-                <th className="text-left py-2 px-1 font-medium">Description</th>
-                <th className="text-left py-2 px-1 font-medium">Container size</th>
-                <th className="text-left py-2 px-1 font-medium">Amount used</th>
-                <th className="text-left py-2 px-1 font-medium">Unit</th>
-                <th className="text-left py-2 px-1 font-medium">Cost</th>
-                <th className="text-right py-2 px-1 font-medium">Total</th>
-                <th className="py-2 px-1"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, rowIndex) => {
-                const TAB_OFFSET = 900
-                const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET
-                const lineCost = item.container_cost * item.fraction_used
+        <div>
+          <div className={bomHeader}>
+            <span className={col.first}>Description</span>
+            <span className={col.lg}>Container size</span>
+            <span className={col.lg}>Amount used</span>
+            <span className={col.unit}>Unit</span>
+            <span className={col.lg}>Cost</span>
+            <span className={col.last}>Total</span>
+            <span className={col.delete}></span>
+          </div>
 
-                return (
-                  <tr key={item.id} className="border-b hover:bg-muted/30">
-                    <td className="py-1 px-1">
-                      <EditableCell
-                        value={item.description}
-                        onChange={(v) => handleUpdate(item.id, 'description', v)}
-                        tabIndex={baseTab}
-                      />
-                    </td>
-                    <td className="py-1 px-1">
-                      <EditableCell
-                        value={item.container_size ?? ''}
-                        onChange={(v) => handleContainerSizeUpdate(item, v)}
-                        type="number"
-                        tabIndex={baseTab + 1}
-                      />
-                    </td>
-                    <td className="py-1 px-1">
-                      <EditableCell
-                        value={item.amount_used ?? ''}
-                        onChange={(v) => handleAmountUpdate(item, v)}
-                        type="number"
-                        tabIndex={baseTab + 2}
-                      />
-                    </td>
-                    <td className="py-1 px-1">
-                      <Select
-                        value={item.unit}
-                        onValueChange={(v) => updateItem(item.id, { unit: v })}
-                      >
-                        <SelectTrigger className="h-7 w-20 text-xs border-transparent hover:border-border focus:border-ring">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {FINISH_UNITS.map((u) => (
-                            <SelectItem key={u} value={u} className="text-xs">
-                              {u}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="py-1 px-1">
-                      <EditableCell
-                        value={item.container_cost}
-                        onChange={(v) => handleUpdate(item.id, 'container_cost', v)}
-                        type="number"
-                        tabIndex={baseTab + 3}
-                      />
-                    </td>
-                    <td className="py-1 px-1 text-right">
-                      {formatCurrency(lineCost)}
-                    </td>
-                    <td className="py-1 px-1">
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        tabIndex={baseTab + 4}
-                        className="cursor-pointer text-muted-foreground hover:text-destructive
-                          text-xs px-1 focus:outline-none focus:ring-1 focus:ring-ring rounded"
-                      >
-                        ✕
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+          {items.map((item, rowIndex) => {
+            const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET
+            const lineCost = item.container_cost * item.fraction_used
 
-      {items.length > 0 && (
-        <div className="flex justify-end text-sm pt-1">
-          <span className="font-medium">
-            Finish total: {formatCurrency(totals.finish.total)}
-          </span>
+            return (
+              <div key={item.id} className={`${bomRow} border-b hover:bg-muted/30`}>
+                <div className={col.first}>
+                  <EditableCell
+                    value={item.description}
+                    onChange={(v) => handleUpdate(item.id, 'description', v)}
+                    tabIndex={baseTab}
+                  />
+                </div>
+                <div className={col.lg}>
+                  <EditableCell
+                    value={item.container_size ?? ''}
+                    onChange={(v) => handleContainerSizeUpdate(item, v)}
+                    type="number"
+                    tabIndex={baseTab + 1}
+                  />
+                </div>
+                <div className={col.lg}>
+                  <EditableCell
+                    value={item.amount_used ?? ''}
+                    onChange={(v) => handleAmountUpdate(item, v)}
+                    type="number"
+                    tabIndex={baseTab + 2}
+                  />
+                </div>
+                <div className={col.unit}>
+                  <Select
+                    value={item.unit}
+                    onValueChange={(v) => updateItem(item.id, { unit: v })}
+                  >
+                    <SelectTrigger className="h-7 w-full text-xs border-transparent hover:border-border focus:border-ring">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FINISH_UNITS.map((u) => (
+                        <SelectItem key={u} value={u} className="text-xs">
+                          {u}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className={col.lg}>
+                  <EditableCell
+                    value={item.container_cost}
+                    onChange={(v) => handleUpdate(item.id, 'container_cost', v)}
+                    type="number"
+                    tabIndex={baseTab + 3}
+                  />
+                </div>
+                <div className={`${col.last} text-sm`}>
+                  {formatCurrency(lineCost)}
+                </div>
+                <div className={col.delete}>
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    tabIndex={baseTab + 4}
+                    className="cursor-pointer text-muted-foreground hover:text-destructive
+                      text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+
+          <div className="flex justify-end text-sm pt-3">
+            <span className="font-medium">
+              Finish total: {formatCurrency(totals.finish.total)}
+            </span>
+          </div>
         </div>
       )}
     </div>
