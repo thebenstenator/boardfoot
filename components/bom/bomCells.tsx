@@ -1,44 +1,45 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 
 // ─── EditableCell ─────────────────────────────────────────────────────────────
 
 interface EditableCellProps {
-  value: string | number
-  onChange: (value: string) => void
-  type?: 'text' | 'number'
-  className?: string
-  tabIndex?: number
+  value: string | number;
+  onChange: (value: string) => void;
+  type?: "text" | "number";
+  className?: string;
+  tabIndex?: number;
 }
 
 export function EditableCell({
   value,
   onChange,
-  type = 'text',
-  className = '',
+  type = "text",
+  className = "",
   tabIndex,
 }: EditableCellProps) {
-  const [draft, setDraft] = useState(String(value))
-  const [focused, setFocused] = useState(false)
+  const [draft, setDraft] = useState(String(value));
+  const [focused, setFocused] = useState(false);
 
   function handleFocus() {
-    setDraft(String(value))
-    setFocused(true)
+    setDraft(String(value));
+    setFocused(true);
   }
 
   function handleBlur() {
-    setFocused(false)
-    onChange(draft)
+    setFocused(false);
+    onChange(draft);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') e.currentTarget.blur()
+    if (e.key === "Enter") e.currentTarget.blur();
   }
 
   return (
     <input
-      type={type}
+      type="text"
+      inputMode={type === "number" ? "decimal" : "text"}
       value={focused ? draft : String(value)}
       onChange={(e) => setDraft(e.target.value)}
       onFocus={handleFocus}
@@ -49,41 +50,44 @@ export function EditableCell({
         focus:outline-none focus:border-ring focus:bg-background
         hover:border-border ${className}`}
     />
-  )
+  );
 }
 
 // ─── CurrencyCell ─────────────────────────────────────────────────────────────
 
 interface CurrencyCellProps {
-  value: number
-  onChange: (value: string) => void
-  tabIndex?: number
+  value: number;
+  onChange: (value: string) => void;
+  tabIndex?: number;
 }
 
 export function CurrencyCell({ value, onChange, tabIndex }: CurrencyCellProps) {
-  const [draft, setDraft] = useState(String(value))
-  const [focused, setFocused] = useState(false)
+  const [draft, setDraft] = useState(String(value));
+  const [focused, setFocused] = useState(false);
 
   function handleFocus() {
-    setDraft(String(value))
-    setFocused(true)
+    setDraft(String(value));
+    setFocused(true);
   }
 
   function handleBlur() {
-    setFocused(false)
-    onChange(draft)
+    setFocused(false);
+    onChange(draft);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') e.currentTarget.blur()
+    if (e.key === "Enter") e.currentTarget.blur();
   }
 
   return (
-    <div className="flex items-center border border-transparent rounded hover:border-border
-      focus-within:border-ring focus-within:bg-background px-1 py-0.5 gap-0.5">
+    <div
+      className="flex items-center border border-transparent rounded hover:border-border
+      focus-within:border-ring focus-within:bg-background px-1 py-0.5 gap-0.5"
+    >
       <span className="text-muted-foreground text-sm shrink-0">$</span>
       <input
-        type="number"
+        type="text"
+        inputMode="decimal"
         value={focused ? draft : String(value)}
         onChange={(e) => setDraft(e.target.value)}
         onFocus={handleFocus}
@@ -93,5 +97,5 @@ export function CurrencyCell({ value, onChange, tabIndex }: CurrencyCellProps) {
         className="w-full bg-transparent text-sm focus:outline-none"
       />
     </div>
-  )
+  );
 }
