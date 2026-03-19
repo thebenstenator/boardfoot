@@ -5,6 +5,7 @@ import { useLumberItems } from '@/hooks/useLineItems'
 import { calculateBoardFeetFlexible, convertLFtoBFPrice } from '@/lib/calculations/boardFeet'
 import { applyWasteFactor } from '@/lib/calculations/wasteFactor'
 import { useProjectStore } from '@/store/projectStore'
+import { EditableCell, CurrencyCell } from '@/components/bom/bomCells'
 import type { LumberItem, LengthUnit } from '@/types/bom'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,54 +15,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { bomSection, bomSectionHeader, bomHeader, bomRow, col } from './bomStyles'
-
-interface EditableCellProps {
-  value: string | number
-  onChange: (value: string) => void
-  type?: 'text' | 'number'
-  className?: string
-  tabIndex?: number
-}
-
-function EditableCell({
-  value,
-  onChange,
-  type = 'text',
-  className = '',
-  tabIndex,
-}: EditableCellProps) {
-  const [draft, setDraft] = useState(String(value))
-  const [focused, setFocused] = useState(false)
-
-  function handleFocus() {
-    setDraft(String(value))
-    setFocused(true)
-  }
-
-  function handleBlur() {
-    setFocused(false)
-    onChange(draft)
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') e.currentTarget.blur()
-  }
-
-  return (
-    <input
-      type={type}
-      value={focused ? draft : String(value)}
-      onChange={(e) => setDraft(e.target.value)}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      tabIndex={tabIndex}
-      className={`w-full bg-transparent border border-transparent rounded px-1 py-0.5 text-sm
-        focus:outline-none focus:border-ring focus:bg-background
-        hover:border-border ${className}`}
-    />
-  )
-}
 
 interface LumberSectionProps {
   projectId: string
@@ -238,10 +191,9 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                     </button>
                   </div>
                   <div className={col.lg}>
-                    <EditableCell
+                    <CurrencyCell
                       value={item.price_per_unit}
                       onChange={(v) => handleUpdate(item.id, 'price_per_unit', v)}
-                      type="number"
                       tabIndex={baseTab + 7}
                     />
                   </div>

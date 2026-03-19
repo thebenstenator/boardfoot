@@ -5,6 +5,7 @@ import { useHardwareItems } from '@/hooks/useLineItems'
 import { useProjectStore } from '@/store/projectStore'
 import type { HardwareItem, HardwareUnit } from '@/types/bom'
 import { Button } from '@/components/ui/button'
+import { EditableCell, CurrencyCell } from '@/components/bom/bomCells'
 import {
   Select,
   SelectContent,
@@ -15,54 +16,6 @@ import {
 import { bomSection, bomSectionHeader, bomHeader, bomRow, col } from './bomStyles'
 
 const UNIT_OPTIONS: HardwareUnit[] = ['each', 'box', 'pair', 'set', 'lb', 'oz']
-
-interface EditableCellProps {
-  value: string | number
-  onChange: (value: string) => void
-  type?: 'text' | 'number'
-  className?: string
-  tabIndex?: number
-}
-
-function EditableCell({
-  value,
-  onChange,
-  type = 'text',
-  className = '',
-  tabIndex,
-}: EditableCellProps) {
-  const [draft, setDraft] = useState(String(value))
-  const [focused, setFocused] = useState(false)
-
-  function handleFocus() {
-    setDraft(String(value))
-    setFocused(true)
-  }
-
-  function handleBlur() {
-    setFocused(false)
-    onChange(draft)
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') e.currentTarget.blur()
-  }
-
-  return (
-    <input
-      type={type}
-      value={focused ? draft : String(value)}
-      onChange={(e) => setDraft(e.target.value)}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      tabIndex={tabIndex}
-      className={`w-full bg-transparent border border-transparent rounded px-1 py-0.5 text-sm
-        focus:outline-none focus:border-ring focus:bg-background
-        hover:border-border ${className}`}
-    />
-  )
-}
 
 interface HardwareSectionProps {
   projectId: string
@@ -146,12 +99,11 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                   </Select>
                 </div>
                 <div className={col.lg}>
-                  <EditableCell
+                  <CurrencyCell
                     value={item.unit_cost}
                     onChange={(v) => handleUpdate(item.id, 'unit_cost', v)}
-                    type="number"
                     tabIndex={baseTab + 3}
-                  />
+                    />
                 </div>
                 <div className={`${col.last} text-sm`}>
                   {formatCurrency(lineTotal)}

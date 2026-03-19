@@ -5,6 +5,7 @@ import { useFinishItems } from '@/hooks/useLineItems'
 import { useProjectStore } from '@/store/projectStore'
 import type { FinishItem } from '@/types/bom'
 import { Button } from '@/components/ui/button'
+import { EditableCell, CurrencyCell } from '@/components/bom/bomCells'
 import {
   Select,
   SelectContent,
@@ -14,55 +15,12 @@ import {
 } from '@/components/ui/select'
 import { bomSection, bomSectionHeader, bomHeader, bomRow, col } from './bomStyles'
 
-const FINISH_UNITS = ['oz', 'fl oz', 'ml', 'L', 'qt', 'gal', 'sheets', 'roll']
-
-interface EditableCellProps {
-  value: string | number
-  onChange: (value: string) => void
-  type?: 'text' | 'number'
-  className?: string
-  tabIndex?: number
-}
-
-function EditableCell({
-  value,
-  onChange,
-  type = 'text',
-  className = '',
-  tabIndex,
-}: EditableCellProps) {
-  const [draft, setDraft] = useState(String(value))
-  const [focused, setFocused] = useState(false)
-
-  function handleFocus() {
-    setDraft(String(value))
-    setFocused(true)
-  }
-
-  function handleBlur() {
-    setFocused(false)
-    onChange(draft)
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') e.currentTarget.blur()
-  }
-
-  return (
-    <input
-      type={type}
-      value={focused ? draft : String(value)}
-      onChange={(e) => setDraft(e.target.value)}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      tabIndex={tabIndex}
-      className={`w-full bg-transparent border border-transparent rounded px-1 py-0.5 text-sm
-        focus:outline-none focus:border-ring focus:bg-background
-        hover:border-border ${className}`}
-    />
-  )
-}
+const FINISH_UNITS = [
+  'oz', 'fl oz', 'ml', 'L', 'qt', 'gal',
+  'sheets', 'discs', 'roll',
+  'sticks', 'tubes',
+  'item',
+]
 
 interface FinishSectionProps {
   projectId: string
@@ -106,22 +64,22 @@ export function FinishSection({ projectId }: FinishSectionProps) {
   return (
     <div className={bomSection}>
       <div className={bomSectionHeader}>
-        <h2 className="text-lg font-semibold">Finishing Materials</h2>
-        <Button size="sm" onClick={addItem}>+ Add finish</Button>
+        <h2 className="text-lg font-semibold">Consumables</h2>
+        <Button size="sm" onClick={addItem}>+ Add consumable</Button>
       </div>
 
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground py-4 text-center">
-          No finishing materials added yet. Click "+ Add finish" to start.
+          No consumables added yet. Click "+ Add consumable" to start.
         </p>
       ) : (
         <div>
           <div className={bomHeader}>
             <span className={col.first}>Description</span>
             <span className={col.lg}>Container size</span>
+            <span className={col.lg}>Container cost</span>
             <span className={col.lg}>Amount used</span>
             <span className={col.unit}>Unit</span>
-            <span className={col.lg}>Cost</span>
             <span className={col.last}>Total</span>
             <span className={col.delete}></span>
           </div>
@@ -148,11 +106,18 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                   />
                 </div>
                 <div className={col.lg}>
+                  <CurrencyCell
+                    value={item.container_cost}
+                    onChange={(v) => handleUpdate(item.id, 'container_cost', v)}
+                    tabIndex={baseTab + 2}
+                  />
+                </div>
+                <div className={col.lg}>
                   <EditableCell
                     value={item.amount_used ?? ''}
                     onChange={(v) => handleAmountUpdate(item, v)}
                     type="number"
-                    tabIndex={baseTab + 2}
+                    tabIndex={baseTab + 3}
                   />
                 </div>
                 <div className={col.unit}>
@@ -171,14 +136,6 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className={col.lg}>
-                  <EditableCell
-                    value={item.container_cost}
-                    onChange={(v) => handleUpdate(item.id, 'container_cost', v)}
-                    type="number"
-                    tabIndex={baseTab + 3}
-                  />
                 </div>
                 <div className={`${col.last} text-sm`}>
                   {formatCurrency(lineCost)}
@@ -199,7 +156,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
 
           <div className="flex justify-end text-sm pt-3">
             <span className="font-medium">
-              Finish total: {formatCurrency(totals.finish.total)}
+              Consumables total: {formatCurrency(totals.finish.total)}
             </span>
           </div>
         </div>
