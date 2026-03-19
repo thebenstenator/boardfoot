@@ -119,7 +119,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
         ) : (
           <div>
             <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
-              <div className="min-w-[700px] sm:min-w-0">
+              <div className="min-w-[750px] sm:min-w-0">
                 {/* Header row */}
                 <div className={bomHeader}>
                   <span className={col.first}>Species</span>
@@ -253,7 +253,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                   );
                 })}
                 {/* Waste footer */}
-                <div className="flex justify-end items-center gap-6 text-sm pt-3">
+                <div className="flex justify-start sm:justify-end items-center gap-6 text-sm pt-3">
                   <span className="text-muted-foreground">
                     Net: {netBF.toFixed(2)} BF — {formatCurrency(netCost)}
                   </span>
