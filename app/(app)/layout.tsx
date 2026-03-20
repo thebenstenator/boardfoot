@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function AppLayout({
   children,
@@ -24,16 +24,24 @@ export default async function AppLayout({
             href="/dashboard"
             className="font-bold text-lg hover:opacity-80 transition-opacity"
           >
-            <span className="font-bold text-lg">BoardFoot</span>
+            BoardFoot
           </Link>
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
+          <div className="flex items-center gap-4">
+            <Link
+              href="/settings/billing"
               className="text-sm text-muted-foreground hover:text-foreground"
             >
-              Sign out
-            </button>
-          </form>
+              Billing
+            </Link>
+            <form action="/auth/signout" method="post">
+              <button
+                type="submit"
+                className="cursor-pointer text-sm text-muted-foreground hover:text-foreground"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
       </header>
       <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
