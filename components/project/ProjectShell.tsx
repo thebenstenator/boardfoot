@@ -7,6 +7,7 @@ import { LumberSection } from "@/components/bom/LumberSection";
 import { HardwareSection } from "@/components/bom/HardwareSection";
 import { FinishSection } from "@/components/bom/FinishSection";
 import { CostSummary } from "@/components/bom/CostSummary";
+import { ExportButton } from "@/components/bom/ExportButton";
 
 interface ProjectShellProps {
   projectId: string;
@@ -60,32 +61,35 @@ export function ProjectShell({ projectId }: ProjectShellProps) {
 
   return (
     <div className="space-y-10">
-      {/* Editable project name */}
-      {editingName ? (
-        <input
-          type="text"
-          value={nameDraft}
-          onChange={(e) => setNameDraft(e.target.value)}
-          onBlur={handleNameSave}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleNameSave();
-            if (e.key === "Escape") setEditingName(false);
-          }}
-          autoFocus
-          className="text-2xl font-bold bg-transparent border-b border-ring focus:outline-none w-full"
-        />
-      ) : (
-        <h1
-          onClick={() => {
-            setNameDraft(project.name);
-            setEditingName(true);
-          }}
-          className="text-2xl font-bold cursor-text hover:opacity-70 transition-opacity"
-          title="Click to rename"
-        >
-          {project.name}
-        </h1>
-      )}
+      {/* Project name + export button */}
+      <div className="flex items-center justify-between gap-4">
+        {editingName ? (
+          <input
+            type="text"
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            onBlur={handleNameSave}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleNameSave();
+              if (e.key === "Escape") setEditingName(false);
+            }}
+            autoFocus
+            className="text-2xl font-bold bg-transparent border-b border-ring focus:outline-none flex-1"
+          />
+        ) : (
+          <h1
+            onClick={() => {
+              setNameDraft(project.name);
+              setEditingName(true);
+            }}
+            className="text-2xl font-bold cursor-text hover:opacity-70 transition-opacity"
+            title="Click to rename"
+          >
+            {project.name}
+          </h1>
+        )}
+        <ExportButton projectId={projectId} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
         <div className="space-y-10">
