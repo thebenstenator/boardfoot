@@ -122,17 +122,15 @@ export function LumberSection({ projectId }: LumberSectionProps) {
               <div className="min-w-[750px] sm:min-w-0">
                 {/* Header row */}
                 <div className={bomHeader}>
-                  <span className={col.first}>Species</span>
-                  <span className={col.sm}>Thickness</span>
-                  <span className={col.sm}>Width</span>
-                  <span className={`${col.md} flex items-center gap-1`}>
-                    Length
-                  </span>
-                  <span className={col.toggle}></span>
-                  <span className={col.sm}>Qty</span>
-                  <span className={col.toggle}>Mode</span>
-                  <span className={col.lg}>$/unit</span>
-                  <span className={col.sm}>BF</span>
+                  <span className={`${col.first}`}>Species</span>
+                  <span className={`${col.md} pl-1`}>T(in)</span>
+                  <span className={`${col.md} pl-1`}>W(in)</span>
+                  <span className={`${col.md} pl-1`}>L</span>
+                  <span className={col.toggle}>L ft/in</span>
+                  <span className={`${col.sm} pl-1`}>Qty</span>
+                  <span className={`${col.toggle} pl-1`}>Mode</span>
+                  <span className={`${col.lg} pl-1`}>$/unit</span>
+                  <span className={`${col.sm} pl-1`}>BF</span>
                   <span className={col.last}>Total</span>
                   <span className={col.delete}></span>
                 </div>
@@ -153,7 +151,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           tabIndex={baseTab}
                         />
                       </div>
-                      <div className={col.sm}>
+                      <div className={`${col.sm} text-right`}>
                         <EditableCell
                           value={item.thickness_in}
                           onChange={(v) =>
@@ -163,7 +161,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           tabIndex={baseTab + 1}
                         />
                       </div>
-                      <div className={col.sm}>
+                      <div className={`${col.sm} text-right`}>
                         <EditableCell
                           value={item.width_in}
                           onChange={(v) => handleUpdate(item.id, "width_in", v)}
@@ -171,7 +169,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           tabIndex={baseTab + 2}
                         />
                       </div>
-                      <div className={`${col.md} flex items-center mr-2`}>
+                      <div className={`${col.md} pl-1`}>
                         <input
                           type="text"
                           inputMode="decimal"
@@ -184,15 +182,17 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                             if (e.key === "Enter") e.currentTarget.blur();
                           }}
                           tabIndex={baseTab + 3}
-                          className="w-12 bg-transparent border border-transparent rounded px-1 py-0.5
-                            text-sm focus:outline-none focus:border-ring focus:bg-background
-                            hover:border-border"
+                          className="w-full bg-transparent border border-transparent rounded px-1 py-0.5
+                                    text-sm focus:outline-none focus:border-ring focus:bg-background
+                                    hover:border-border"
                         />
+                      </div>
+                      <div className={col.toggle}>
                         <button
                           onClick={() => handleUnitToggle(item)}
                           tabIndex={baseTab + 4}
                           className="cursor-pointer text-xs border rounded px-1.5 py-0.5
-                            hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
+                                    hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
                         >
                           {item.length_unit ?? "ft"}
                         </button>
@@ -232,7 +232,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                         />
                       </div>
                       <div
-                        className={`${col.sm} text-muted-foreground text-sm`}
+                        className={`${col.sm} text-right text-muted-foreground text-sm`}
                       >
                         {totalBF.toFixed(2)}
                       </div>
