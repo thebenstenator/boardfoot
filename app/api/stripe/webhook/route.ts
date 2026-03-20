@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe/client";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -24,7 +24,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  // Use service role client — bypasses RLS for server-to-server calls
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
 
   switch (event.type) {
     case "customer.subscription.created":
@@ -34,13 +38,14 @@ export async function POST(request: Request) {
       const isActive =
         subscription.status === "active" || subscription.status === "trialing";
 
-      await supabase
+      const { error } = await supabase
         .from("profiles")
         .update({
           subscription_tier: isActive ? "pro" : "free",
         })
         .eq("stripe_customer_id", customerId);
 
+      if (error) console.error("Failed to update subscription tier:", error);
       break;
     }
 
@@ -48,11 +53,12 @@ export async function POST(request: Request) {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId = subscription.customer as string;
 
-      await supabase
+      const { error } = await supabase
         .from("profiles")
         .update({ subscription_tier: "free" })
         .eq("stripe_customer_id", customerId);
 
+      if (error) console.error("Failed to revert subscription tier:", error);
       break;
     }
   }
