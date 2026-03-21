@@ -8,7 +8,7 @@ import {
   EditableCell,
   CurrencyCell,
   DescriptionCell,
-} from "@/components/bom/bomCells";
+} from "@/components/bom/BomCells";
 import {
   Select,
   SelectContent,

@@ -89,7 +89,13 @@ export default async function AppLayout({
                   )}
                 </div>
               </DropdownMenuLabel>
+
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/settings/overhead" className="cursor-pointer">
+                  Shop settings
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/settings/billing" className="cursor-pointer">
                   Billing

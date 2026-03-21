@@ -1,91 +1,91 @@
-import { useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useProjectStore } from '@/store/projectStore'
-import type { LumberItem, HardwareItem, FinishItem } from '@/types/bom'
+import { useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useProjectStore } from "@/store/projectStore";
+import type {
+  LumberItem,
+  HardwareItem,
+  FinishItem,
+  ProjectLabor,
+} from "@/types/bom";
 
 export function useLumberItems(projectId: string) {
-  const {
-    lumberItems,
-    addLumberItem,
-    updateLumberItem,
-    removeLumberItem,
-  } = useProjectStore()
+  const { lumberItems, addLumberItem, updateLumberItem, removeLumberItem } =
+    useProjectStore();
 
-  const supabase = createClient()
+  const supabase = createClient();
 
   const addItem = useCallback(async () => {
     const newItem = {
       project_id: projectId,
-      species: '',
+      species: "",
       thickness_in: 1.0,
       width_in: 6.0,
       length_ft: 8.0,
-      length_unit: 'ft' as const,
+      length_unit: "ft" as const,
       quantity: 1,
-      pricing_mode: 'per_bf' as const,
+      pricing_mode: "per_bf" as const,
       price_per_unit: 0,
       is_reclaimed: false,
       waste_override: null,
-      notes: '',
+      notes: "",
       sort_order: lumberItems.length,
-    }
+    };
 
     const { data, error } = await supabase
-      .from('lumber_items')
+      .from("lumber_items")
       .insert(newItem)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Failed to add lumber item:', error)
-      return
+      console.error("Failed to add lumber item:", error);
+      return;
     }
 
-    addLumberItem(data as LumberItem)
-  }, [projectId, lumberItems.length, supabase, addLumberItem])
+    addLumberItem(data as LumberItem);
+  }, [projectId, lumberItems.length, supabase, addLumberItem]);
 
   const updateItem = useCallback(
     async (id: string, patch: Partial<LumberItem>) => {
       // Optimistic update — update store immediately
-      updateLumberItem(id, patch)
+      updateLumberItem(id, patch);
 
       const { error } = await supabase
-        .from('lumber_items')
+        .from("lumber_items")
         .update(patch)
-        .eq('id', id)
+        .eq("id", id);
 
       if (error) {
-        console.error('Failed to update lumber item:', error)
+        console.error("Failed to update lumber item:", error);
         // TODO: rollback optimistic update on error
       }
     },
-    [supabase, updateLumberItem]
-  )
+    [supabase, updateLumberItem],
+  );
 
   const removeItem = useCallback(
     async (id: string) => {
       // Optimistic update
-      removeLumberItem(id)
+      removeLumberItem(id);
 
       const { error } = await supabase
-        .from('lumber_items')
+        .from("lumber_items")
         .delete()
-        .eq('id', id)
+        .eq("id", id);
 
       if (error) {
-        console.error('Failed to remove lumber item:', error)
+        console.error("Failed to remove lumber item:", error);
       }
     },
-    [supabase, removeLumberItem]
-  )
+    [supabase, removeLumberItem],
+  );
 
   return {
     items: lumberItems,
     addItem,
     updateItem,
     removeItem,
-  }
-
+  };
 }
 
 export function useHardwareItems(projectId: string) {
@@ -94,145 +94,193 @@ export function useHardwareItems(projectId: string) {
     addHardwareItem,
     updateHardwareItem,
     removeHardwareItem,
-  } = useProjectStore()
+  } = useProjectStore();
 
-  const supabase = createClient()
+  const supabase = createClient();
 
   const addItem = useCallback(async () => {
     const newItem = {
       project_id: projectId,
-      description: '',
+      description: "",
       quantity: 1,
-      unit: 'each',
+      unit: "each",
       unit_cost: 0,
-      notes: '',
+      notes: "",
       sort_order: hardwareItems.length,
-    }
+    };
 
     const { data, error } = await supabase
-      .from('hardware_items')
+      .from("hardware_items")
       .insert(newItem)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Failed to add hardware item:', error)
-      return
+      console.error("Failed to add hardware item:", error);
+      return;
     }
 
-    addHardwareItem(data as HardwareItem)
-  }, [projectId, hardwareItems.length, supabase, addHardwareItem])
+    addHardwareItem(data as HardwareItem);
+  }, [projectId, hardwareItems.length, supabase, addHardwareItem]);
 
   const updateItem = useCallback(
     async (id: string, patch: Partial<HardwareItem>) => {
-      updateHardwareItem(id, patch)
+      updateHardwareItem(id, patch);
 
       const { error } = await supabase
-        .from('hardware_items')
+        .from("hardware_items")
         .update(patch)
-        .eq('id', id)
+        .eq("id", id);
 
       if (error) {
-        console.error('Failed to update hardware item:', error)
+        console.error("Failed to update hardware item:", error);
       }
     },
-    [supabase, updateHardwareItem]
-  )
+    [supabase, updateHardwareItem],
+  );
 
   const removeItem = useCallback(
     async (id: string) => {
-      removeHardwareItem(id)
+      removeHardwareItem(id);
 
       const { error } = await supabase
-        .from('hardware_items')
+        .from("hardware_items")
         .delete()
-        .eq('id', id)
+        .eq("id", id);
 
       if (error) {
-        console.error('Failed to remove hardware item:', error)
+        console.error("Failed to remove hardware item:", error);
       }
     },
-    [supabase, removeHardwareItem]
-  )
+    [supabase, removeHardwareItem],
+  );
 
   return {
     items: hardwareItems,
     addItem,
     updateItem,
     removeItem,
-  }
+  };
 }
 
 export function useFinishItems(projectId: string) {
-  const {
-    finishItems,
-    addFinishItem,
-    updateFinishItem,
-    removeFinishItem,
-  } = useProjectStore()
+  const { finishItems, addFinishItem, updateFinishItem, removeFinishItem } =
+    useProjectStore();
 
-  const supabase = createClient()
+  const supabase = createClient();
 
   const addItem = useCallback(async () => {
     const newItem = {
       project_id: projectId,
-      description: '',
+      description: "",
       container_cost: 0,
       fraction_used: 1.0,
-      notes: '',
+      notes: "",
       sort_order: finishItems.length,
-    }
+    };
 
     const { data, error } = await supabase
-      .from('finish_items')
+      .from("finish_items")
       .insert(newItem)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Failed to add finish item:', error)
-      return
+      console.error("Failed to add finish item:", error);
+      return;
     }
 
-    addFinishItem(data as FinishItem)
-  }, [projectId, finishItems.length, supabase, addFinishItem])
+    addFinishItem(data as FinishItem);
+  }, [projectId, finishItems.length, supabase, addFinishItem]);
 
   const updateItem = useCallback(
     async (id: string, patch: Partial<FinishItem>) => {
-      updateFinishItem(id, patch)
+      updateFinishItem(id, patch);
 
       const { error } = await supabase
-        .from('finish_items')
+        .from("finish_items")
         .update(patch)
-        .eq('id', id)
+        .eq("id", id);
 
       if (error) {
-        console.error('Failed to update finish item:', error)
+        console.error("Failed to update finish item:", error);
       }
     },
-    [supabase, updateFinishItem]
-  )
+    [supabase, updateFinishItem],
+  );
 
   const removeItem = useCallback(
     async (id: string) => {
-      removeFinishItem(id)
+      removeFinishItem(id);
 
       const { error } = await supabase
-        .from('finish_items')
+        .from("finish_items")
         .delete()
-        .eq('id', id)
+        .eq("id", id);
 
       if (error) {
-        console.error('Failed to remove finish item:', error)
+        console.error("Failed to remove finish item:", error);
       }
     },
-    [supabase, removeFinishItem]
-  )
+    [supabase, removeFinishItem],
+  );
 
   return {
     items: finishItems,
     addItem,
     updateItem,
     removeItem,
-  }
+  };
+}
+
+export function useProjectLabor(projectId: string) {
+  const { labor, setLabor } = useProjectStore();
+  const supabase = createClient();
+
+  const updateLabor = useCallback(
+    async (patch: Partial<ProjectLabor>) => {
+      // Optimistic update
+      if (labor) {
+        setLabor({ ...labor, ...patch });
+      }
+
+      // Check if labor row exists
+      const { data: existing } = await supabase
+        .from("project_labor")
+        .select("id")
+        .eq("project_id", projectId)
+        .single();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("project_labor")
+          .update(patch)
+          .eq("project_id", projectId);
+
+        if (error) console.error("Failed to update labor:", error);
+      } else {
+        // Create new labor row
+        const { data, error } = await supabase
+          .from("project_labor")
+          .insert({
+            project_id: projectId,
+            hourly_rate: null,
+            estimated_hrs: 0,
+            target_margin: 0.3,
+            ...patch,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Failed to create labor:", error);
+        } else if (data) {
+          setLabor(data as ProjectLabor);
+        }
+      }
+    },
+    [projectId, labor, supabase, setLabor],
+  );
+
+  return { labor, updateLabor };
 }

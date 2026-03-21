@@ -8,6 +8,7 @@ import { HardwareSection } from "@/components/bom/HardwareSection";
 import { FinishSection } from "@/components/bom/FinishSection";
 import { CostSummary } from "@/components/bom/CostSummary";
 import { ExportButton } from "@/components/bom/ExportButton";
+import { LaborSection } from "@/components/bom/LaborSection";
 
 interface ProjectShellProps {
   projectId: string;
@@ -96,6 +97,7 @@ export function ProjectShell({ projectId }: ProjectShellProps) {
           <LumberSection projectId={projectId} />
           <HardwareSection projectId={projectId} />
           <FinishSection projectId={projectId} />
+          <LaborSection projectId={projectId} />
         </div>
         <div className="lg:sticky lg:top-8">
           <CostSummary />

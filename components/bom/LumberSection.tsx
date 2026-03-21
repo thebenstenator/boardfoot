@@ -7,7 +7,7 @@ import {
 } from "@/lib/calculations/boardFeet";
 import { applyWasteFactor } from "@/lib/calculations/wasteFactor";
 import { useProjectStore } from "@/store/projectStore";
-import { EditableCell, CurrencyCell } from "@/components/bom/bomCells";
+import { EditableCell, CurrencyCell } from "@/components/bom/BomCells";
 import { SpeciesInput } from "@/components/bom/SpeciesInput";
 import type { LumberItem, LengthUnit } from "@/types/bom";
 import { Button } from "@/components/ui/button";
