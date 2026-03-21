@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BoardFoot
 
-## Getting Started
+> A woodworking project cost estimator and bill of materials planner for hobbyists and small makers.
 
-First, run the development server:
+**Live app:** [boardfoot.vercel.app](https://boardfoot.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What it does
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+BoardFoot lets woodworkers build accurate bills of materials without CAD software. Users add lumber (with automatic board foot calculation and waste factor math), hardware, and consumables to a project and get a live cost breakdown including suggested retail price and Etsy pricing.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Key features:
 
-## Learn More
+- Board foot calculator with nominal-to-actual conversion and waste factor (margin math, not additive)
+- Lumber, hardware, and consumables line items with inline editing
+- Live cost summary with suggested retail and Etsy fee breakdown
+- PDF export (branded on free tier, clean on Pro)
+- Stripe subscription billing with free and Pro tiers
+- Species price database with autocomplete and per-user price overrides
+- Supabase auth with email and Google OAuth
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Layer      | Choice                      |
+| ---------- | --------------------------- |
+| Framework  | Next.js 14 (App Router)     |
+| Language   | TypeScript                  |
+| Styling    | Tailwind CSS + shadcn/ui    |
+| Database   | Supabase (PostgreSQL + RLS) |
+| Auth       | Supabase Auth               |
+| Payments   | Stripe                      |
+| State      | Zustand                     |
+| PDF        | @react-pdf/renderer         |
+| Testing    | Vitest                      |
+| Deployment | Vercel                      |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The codebase is organized into vertical slices — each feature owns its database tables, API routes, state, and components. Calculation logic lives in `lib/calculations/` as pure TypeScript functions with full unit test coverage, completely separate from React.
