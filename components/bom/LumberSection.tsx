@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useLumberItems } from "@/hooks/useLineItems";
 import {
   calculateBoardFeetFlexible,
@@ -9,6 +8,7 @@ import {
 import { applyWasteFactor } from "@/lib/calculations/wasteFactor";
 import { useProjectStore } from "@/store/projectStore";
 import { EditableCell, CurrencyCell } from "@/components/bom/bomCells";
+import { SpeciesInput } from "@/components/bom/SpeciesInput";
 import type { LumberItem, LengthUnit } from "@/types/bom";
 import { Button } from "@/components/ui/button";
 import {
@@ -145,9 +145,16 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                       className={`${bomRow} border-b hover:bg-muted/30`}
                     >
                       <div className={col.first}>
-                        <EditableCell
+                        <SpeciesInput
                           value={item.species}
-                          onChange={(v) => handleUpdate(item.id, "species", v)}
+                          onChange={(species, suggestedPrice) => {
+                            handleUpdate(item.id, "species", species);
+                            if (suggestedPrice !== undefined) {
+                              updateItem(item.id, {
+                                price_per_unit: suggestedPrice,
+                              });
+                            }
+                          }}
                           tabIndex={baseTab}
                         />
                       </div>
