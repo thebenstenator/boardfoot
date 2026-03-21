@@ -5,7 +5,11 @@ import { useFinishItems } from "@/hooks/useLineItems";
 import { useProjectStore } from "@/store/projectStore";
 import type { FinishItem } from "@/types/bom";
 import { Button } from "@/components/ui/button";
-import { EditableCell, CurrencyCell } from "@/components/bom/bomCells";
+import {
+  EditableCell,
+  CurrencyCell,
+  DescriptionCell,
+} from "@/components/bom/bomCells";
 import {
   Select,
   SelectContent,
@@ -109,11 +113,10 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                 return (
                   <div
                     key={item.id}
-                    title={item.description}
                     className={`${bomRow} border-b hover:bg-muted/30`}
                   >
-                    <div className={col.first}>
-                      <EditableCell
+                    <div className={col.first} title={item.description}>
+                      <DescriptionCell
                         value={item.description}
                         onChange={(v) =>
                           handleUpdate(item.id, "description", v)

@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useHardwareItems } from "@/hooks/useLineItems";
 import { useProjectStore } from "@/store/projectStore";
 import type { HardwareItem, HardwareUnit } from "@/types/bom";
 import { Button } from "@/components/ui/button";
-import { EditableCell, CurrencyCell } from "@/components/bom/bomCells";
+import {
+  EditableCell,
+  CurrencyCell,
+  DescriptionCell,
+} from "@/components/bom/bomCells";
 import {
   Select,
   SelectContent,
@@ -81,7 +84,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                     className={`${bomRow} border-b hover:bg-muted/30`}
                   >
                     <div className={col.first} title={item.description}>
-                      <EditableCell
+                      <DescriptionCell
                         value={item.description}
                         onChange={(v) =>
                           handleUpdate(item.id, "description", v)

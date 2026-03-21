@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // ─── EditableCell ─────────────────────────────────────────────────────────────
 
@@ -97,5 +97,48 @@ export function CurrencyCell({ value, onChange, tabIndex }: CurrencyCellProps) {
         className="w-full bg-transparent text-sm focus:outline-none"
       />
     </div>
+  );
+}
+
+// ─── DescriptionCell ─────────────────────────────────────────────────────────────
+
+export function DescriptionCell({
+  value,
+  onChange,
+  tabIndex,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  tabIndex?: number;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.style.height = "auto";
+      ref.current.style.height = `${ref.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      e.currentTarget.blur();
+    }
+  }
+
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={handleKeyDown}
+      tabIndex={tabIndex}
+      rows={1}
+      className="w-full bg-transparent border border-transparent rounded px-1 py-0.5 text-sm
+        focus:outline-none focus:border-ring focus:bg-background
+        hover:border-border resize-none leading-tight"
+      style={{ height: "auto", overflow: "hidden" }}
+    />
   );
 }
