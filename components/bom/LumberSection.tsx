@@ -144,7 +144,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                       key={item.id}
                       className={`${bomRow} border-b hover:bg-muted/30`}
                     >
-                      <div className={col.first}>
+                      <div className={col.first} title={item.species}>
                         <SpeciesInput
                           value={item.species}
                           onChange={(species, suggestedPrice) => {
