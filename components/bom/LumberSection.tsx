@@ -119,10 +119,11 @@ export function LumberSection({ projectId }: LumberSectionProps) {
         ) : (
           <div>
             <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
-              <div className="min-w-[750px] sm:min-w-0">
+              <div className="min-w-[800px] sm:min-w-0">
                 {/* Header row */}
                 <div className={bomHeader}>
                   <span className={`${col.first}`}>Species</span>
+                  <span className={`${col.toggle} pl-1`}>♻</span>
                   <span className={`${col.md} pl-1`}>T(in)</span>
                   <span className={`${col.md} pl-1`}>W(in)</span>
                   <span className={`${col.md} pl-1`}>L</span>
@@ -157,6 +158,30 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           }}
                           tabIndex={baseTab}
                         />
+                      </div>
+                      <div className={col.toggle}>
+                        <button
+                          onClick={() =>
+                            updateItem(item.id, {
+                              is_reclaimed: !item.is_reclaimed,
+                            })
+                          }
+                          tabIndex={baseTab - 1}
+                          title={
+                            item.is_reclaimed
+                              ? "Reclaimed/on-hand"
+                              : "Mark as reclaimed"
+                          }
+                          className={`cursor-pointer text-xs border rounded px-1.5 py-0.5
+      focus:outline-none focus:ring-1 focus:ring-ring transition-colors
+      ${
+        item.is_reclaimed
+          ? "bg-green-500/20 border-green-500/50 text-green-600"
+          : "hover:bg-accent"
+      }`}
+                        >
+                          ♻
+                        </button>
                       </div>
                       <div className={`${col.sm} text-right`}>
                         <EditableCell
@@ -284,6 +309,28 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                     </TooltipContent>
                   </Tooltip>
                 </div>
+                {/* Reclaimed savings */}
+                {items.some((i) => i.is_reclaimed) && (
+                  <div className="flex justify-end text-sm pt-1">
+                    <span className="text-green-600 text-xs">
+                      ♻ Reclaimed savings:{" "}
+                      {formatCurrency(
+                        items
+                          .filter((i) => i.is_reclaimed)
+                          .reduce((sum, item) => {
+                            const bf =
+                              calculateBoardFeetFlexible(
+                                item.thickness_in,
+                                item.width_in,
+                                item.length_ft,
+                                (item.length_unit ?? "ft") as LengthUnit,
+                              ) * item.quantity;
+                            return sum + bf * item.price_per_unit;
+                          }, 0),
+                      )}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
