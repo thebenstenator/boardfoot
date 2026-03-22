@@ -9,6 +9,7 @@ import { FinishSection } from "@/components/bom/FinishSection";
 import { CostSummary } from "@/components/bom/CostSummary";
 import { ExportButton } from "@/components/bom/ExportButton";
 import { LaborSection } from "@/components/bom/LaborSection";
+import { ShoppingListButton } from "@/components/bom/ShoppingListbutton";
 
 interface ProjectShellProps {
   projectId: string;
@@ -89,7 +90,10 @@ export function ProjectShell({ projectId }: ProjectShellProps) {
             {project.name}
           </h1>
         )}
-        <ExportButton projectId={projectId} />
+        <div className="flex items-center gap-3">
+          <ShoppingListButton projectId={projectId} />
+          <ExportButton projectId={projectId} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
