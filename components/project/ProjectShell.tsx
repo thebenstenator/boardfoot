@@ -10,12 +10,14 @@ import { CostSummary } from "@/components/bom/CostSummary";
 import { ExportButton } from "@/components/bom/ExportButton";
 import { LaborSection } from "@/components/bom/LaborSection";
 import { ShoppingListButton } from "@/components/bom/ShoppingListbutton";
+import { PhotoGallery } from "@/components/project/PhotoGallery";
 
 interface ProjectShellProps {
   projectId: string;
+  userId: string;
 }
 
-export function ProjectShell({ projectId }: ProjectShellProps) {
+export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   const { loadProject, project, isLoading, setProject } = useProjectStore();
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
@@ -102,6 +104,7 @@ export function ProjectShell({ projectId }: ProjectShellProps) {
           <HardwareSection projectId={projectId} />
           <FinishSection projectId={projectId} />
           <LaborSection projectId={projectId} />
+          <PhotoGallery projectId={projectId} userId={userId} />
         </div>
         <div className="lg:sticky lg:top-8">
           <CostSummary />
