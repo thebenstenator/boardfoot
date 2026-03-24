@@ -11,6 +11,7 @@ import { ExportButton } from "@/components/bom/ExportButton";
 import { LaborSection } from "@/components/bom/LaborSection";
 import { ShoppingListButton } from "@/components/bom/ShoppingListbutton";
 import { PhotoGallery } from "@/components/project/PhotoGallery";
+import { AiGenerateButton } from "@/components/bom/AiGenerateButton";
 
 interface ProjectShellProps {
   projectId: string;
@@ -128,6 +129,7 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <AiGenerateButton projectId={projectId} />
           <ShoppingListButton projectId={projectId} />
           <ExportButton projectId={projectId} />
         </div>

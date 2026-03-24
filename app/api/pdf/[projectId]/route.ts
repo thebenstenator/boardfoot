@@ -106,7 +106,7 @@ export async function GET(
   return new Response(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${project.name}.pdf"`,
+      "Content-Disposition": `inline; filename="${project.name}.pdf"`,
     },
   });
 }
