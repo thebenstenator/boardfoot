@@ -24,6 +24,7 @@ import {
   bomRow,
   col,
 } from "./bomStyles";
+import { getActualToNominal } from "@/lib/calculations/nominalActual";
 
 interface LumberSectionProps {
   projectId: string;
@@ -123,14 +124,13 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                 {/* Header row */}
                 <div className={bomHeader}>
                   <span className={`${col.first}`}>Species</span>
-                  <span className={`${col.toggle} pl-1`}>♻</span>
                   <span className={`${col.md} pl-1`}>T(in)</span>
                   <span className={`${col.md} pl-1`}>W(in)</span>
                   <span className={`${col.md} pl-1`}>L</span>
                   <span className={col.toggle}>L ft/in</span>
                   <span className={`${col.sm} pl-1`}>Qty</span>
                   <span className={`${col.toggle} pl-1`}>Mode</span>
-                  <span className={`${col.lg} pl-1`}>$/unit</span>
+                  <span className={`${col.lg} pl-1`}>Price</span>
                   <span className={`${col.sm} pl-1`}>BF</span>
                   <span className={col.last}>Total</span>
                   <span className={col.delete}></span>
@@ -140,12 +140,13 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                   const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET;
                   const totalBF = getLineBF(item);
                   const lineTotal = getLineTotal(item);
+                  const nominalLabel = getActualToNominal(item.thickness_in, item.width_in);
                   return (
                     <div
                       key={item.id}
-                      className={`${bomRow} border-b hover:bg-muted/30`}
+                      className={`${bomRow} group border-b hover:bg-muted/30`}
                     >
-                      <div className={col.first} title={item.species}>
+                      <div className={`${col.first} relative`} title={item.species}>
                         <SpeciesInput
                           value={item.species}
                           onChange={(species, suggestedPrice) => {
@@ -158,27 +159,24 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           }}
                           tabIndex={baseTab}
                         />
-                      </div>
-                      <div className={col.toggle}>
                         <button
                           onClick={() =>
                             updateItem(item.id, {
                               is_reclaimed: !item.is_reclaimed,
                             })
                           }
-                          tabIndex={baseTab - 1}
+                          tabIndex={-1}
                           title={
                             item.is_reclaimed
-                              ? "Reclaimed/on-hand"
+                              ? "Reclaimed/on-hand — click to unmark"
                               : "Mark as reclaimed"
                           }
-                          className={`cursor-pointer text-xs border rounded px-1.5 py-0.5
-      focus:outline-none focus:ring-1 focus:ring-ring transition-colors
-      ${
-        item.is_reclaimed
-          ? "bg-green-500/20 border-green-500/50 text-green-600"
-          : "hover:bg-accent"
-      }`}
+                          className={`absolute -top-0.5 -right-0.5 text-xs rounded px-0.5 leading-none
+                            transition-opacity focus:outline-none focus:ring-1 focus:ring-ring
+                            ${item.is_reclaimed
+                              ? "opacity-100 text-green-600"
+                              : "opacity-0 group-hover:opacity-60 hover:!opacity-100 text-muted-foreground"
+                            }`}
                         >
                           ♻
                         </button>
@@ -192,6 +190,11 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           type="number"
                           tabIndex={baseTab + 1}
                         />
+                        {nominalLabel && (
+                          <span className="block text-[10px] text-muted-foreground leading-none mt-0.5 text-center">
+                            {nominalLabel}
+                          </span>
+                        )}
                       </div>
                       <div className={`${col.sm} text-right`}>
                         <EditableCell
@@ -269,7 +272,9 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                         {totalBF.toFixed(2)}
                       </div>
                       <div className={`${col.last} text-sm`}>
-                        {formatCurrency(lineTotal)}
+                        {item.is_reclaimed
+                          ? <span className="text-green-600">$0.00</span>
+                          : formatCurrency(lineTotal)}
                       </div>
                       <div className={col.delete}>
                         <button
@@ -309,28 +314,6 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                {/* Reclaimed savings */}
-                {items.some((i) => i.is_reclaimed) && (
-                  <div className="flex justify-end text-sm pt-1">
-                    <span className="text-green-600 text-xs">
-                      ♻ Reclaimed savings:{" "}
-                      {formatCurrency(
-                        items
-                          .filter((i) => i.is_reclaimed)
-                          .reduce((sum, item) => {
-                            const bf =
-                              calculateBoardFeetFlexible(
-                                item.thickness_in,
-                                item.width_in,
-                                item.length_ft,
-                                (item.length_unit ?? "ft") as LengthUnit,
-                              ) * item.quantity;
-                            return sum + bf * item.price_per_unit;
-                          }, 0),
-                      )}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           </div>

@@ -48,3 +48,16 @@ export function getNominalActual(nominal: string): NominalActual | null {
 export function getAllNominalSizes(): string[] {
   return Object.keys(NOMINAL_TO_ACTUAL)
 }
+
+/**
+ * Given actual thickness and width, return the matching nominal size string,
+ * or null if no match found.
+ */
+export function getActualToNominal(thickness: number, width: number): string | null {
+  for (const [nominal, actual] of Object.entries(NOMINAL_TO_ACTUAL)) {
+    if (Math.abs(actual.thickness - thickness) < 0.01 && Math.abs(actual.width - width) < 0.01) {
+      return nominal
+    }
+  }
+  return null
+}

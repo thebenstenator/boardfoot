@@ -21,6 +21,7 @@ function calcLumberTotals(
 ): LumberTotals {
   let boardFeetNet = 0
   let netCost = 0
+  let reclaimedSavings = 0
 
   for (const item of items) {
     // Determine effective waste factor for this item
@@ -43,7 +44,11 @@ function calcLumberTotals(
         ? convertLFtoBFPrice(item.price_per_unit, item.thickness_in, item.width_in)
         : item.price_per_unit
 
-    netCost += lumberLineCost(bfTotal, pricePerBF)
+    if (item.is_reclaimed) {
+      reclaimedSavings += lumberLineCost(bfTotal, pricePerBF)
+    } else {
+      netCost += lumberLineCost(bfTotal, pricePerBF)
+    }
   }
 
   const adjustedCost = wasteAdjustedCost(netCost, projectWasteFactor)
@@ -56,6 +61,7 @@ function calcLumberTotals(
     adjustedCost,
     boardFeetNet,
     boardFeetAdjusted,
+    reclaimedSavings,
   }
 }
 

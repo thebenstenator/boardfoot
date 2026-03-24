@@ -42,6 +42,13 @@ export function CostSummary() {
           value={formatCurrency(totals.lumber.adjustedCost)}
           highlight
         />
+        {totals.lumber.reclaimedSavings > 0 && (
+          <SummaryRow
+            label="♻ Reclaimed savings"
+            value={`−${formatCurrency(totals.lumber.reclaimedSavings)}`}
+            muted
+          />
+        )}
         <SummaryRow
           label="Hardware"
           value={formatCurrency(totals.hardware.total)}
@@ -89,6 +96,13 @@ export function CostSummary() {
           value={formatCurrency(totals.grandTotal)}
           bold
         />
+        {project?.surface_area_sqft && project.surface_area_sqft > 0 && (
+          <SummaryRow
+            label="Cost per sq ft"
+            value={formatCurrency(totals.grandTotal / project.surface_area_sqft)}
+            muted
+          />
+        )}
         {taxRate > 0 && (
           <SummaryRow
             label={`With tax (${formatPercent(taxRate)})`}

@@ -94,6 +94,7 @@ export interface Project {
   name: string
   notes: string
   waste_factor: number        // 0.15 = 15%
+  surface_area_sqft: number | null
   status: 'active' | 'archived'
   created_at: string
   updated_at: string
@@ -107,6 +108,7 @@ export interface LumberTotals {
   adjustedCost: number        // What user should budget (netCost / (1 - wasteFactor))
   boardFeetNet: number        // Total BF before waste
   boardFeetAdjusted: number   // Total BF to purchase after waste
+  reclaimedSavings: number   // Market value of reclaimed items (not included in COGS)
 }
 
 export interface ProjectTotals {

@@ -1,6 +1,6 @@
-export const bomRow = "flex items-start w-full gap-4 py-1";
+export const bomRow = "flex items-start w-full gap-3 py-1";
 export const bomHeader =
-  "flex items-center w-full gap-4 py-2 border-b text-xs text-muted-foreground font-medium";
+  "flex items-center w-full gap-3 py-2 border-b text-xs text-muted-foreground font-medium";
 export const bomSection = "space-y-3";
 export const bomSectionHeader = "flex items-center justify-between";
 

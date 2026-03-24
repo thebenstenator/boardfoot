@@ -1,0 +1,1 @@
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS surface_area_sqft NUMERIC(10,2);

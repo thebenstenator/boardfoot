@@ -77,9 +77,11 @@ export function buildShoppingList(
 
   // Sort lumber by store type
   for (const item of lumberItems) {
+    if (item.is_reclaimed) continue  // already on-hand
     const adjustedQty = item.quantity / (1 - wasteFactor);
-    const bfPerPiece =
-      (item.thickness_in * item.width_in * item.length_ft) / 12;
+    const lengthFt =
+      item.length_unit === "in" ? item.length_ft / 12 : item.length_ft;
+    const bfPerPiece = (item.thickness_in * item.width_in * lengthFt) / 12;
     const totalBF = bfPerPiece * adjustedQty;
     const lineCost = totalBF * item.price_per_unit;
 

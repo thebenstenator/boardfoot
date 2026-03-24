@@ -21,10 +21,28 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   const { loadProject, project, isLoading, setProject } = useProjectStore();
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
+  const [surfaceDraft, setSurfaceDraft] = useState<string>('');
 
   useEffect(() => {
     loadProject(projectId);
   }, [projectId, loadProject]);
+
+  useEffect(() => {
+    setSurfaceDraft(String(project?.surface_area_sqft ?? ''));
+  }, [project]);
+
+  async function handleSurfaceSave() {
+    if (!project) return;
+    const parsed = parseFloat(surfaceDraft) || null;
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("projects")
+      .update({ surface_area_sqft: parsed })
+      .eq("id", projectId);
+    if (!error) {
+      setProject({ ...project, surface_area_sqft: parsed });
+    }
+  }
 
   async function handleNameSave() {
     if (!project || !nameDraft.trim()) {
@@ -67,31 +85,48 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
     <div className="space-y-10">
       {/* Project name + export button */}
       <div className="flex items-center justify-between gap-4">
-        {editingName ? (
-          <input
-            type="text"
-            value={nameDraft}
-            onChange={(e) => setNameDraft(e.target.value)}
-            onBlur={handleNameSave}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleNameSave();
-              if (e.key === "Escape") setEditingName(false);
-            }}
-            autoFocus
-            className="text-2xl font-bold bg-transparent border-b border-ring focus:outline-none flex-1"
-          />
-        ) : (
-          <h1
-            onClick={() => {
-              setNameDraft(project.name);
-              setEditingName(true);
-            }}
-            className="text-2xl font-bold cursor-text hover:opacity-70 transition-opacity"
-            title="Click to rename"
-          >
-            {project.name}
-          </h1>
-        )}
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+          {editingName ? (
+            <input
+              type="text"
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onBlur={handleNameSave}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleNameSave();
+                if (e.key === "Escape") setEditingName(false);
+              }}
+              autoFocus
+              className="text-2xl font-bold bg-transparent border-b border-ring focus:outline-none flex-1"
+            />
+          ) : (
+            <h1
+              onClick={() => {
+                setNameDraft(project.name);
+                setEditingName(true);
+              }}
+              className="text-2xl font-bold cursor-text hover:opacity-70 transition-opacity"
+              title="Click to rename"
+            >
+              {project.name}
+            </h1>
+          )}
+          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+            <span>Surface area:</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              value={surfaceDraft}
+              placeholder="sq ft"
+              onChange={(e) => setSurfaceDraft(e.target.value)}
+              onBlur={handleSurfaceSave}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+              className="w-20 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground"
+            />
+            <span>sq ft</span>
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <ShoppingListButton projectId={projectId} />
           <ExportButton projectId={projectId} />
