@@ -33,6 +33,19 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
     setSurfaceDraft(String(project?.surface_area_sqft ?? ''));
   }, [project]);
 
+  async function handleShareToggle() {
+    if (!project) return;
+    const supabase = createClient();
+    const newIsPublic = !project.is_public;
+    const { error } = await supabase
+      .from("projects")
+      .update({ is_public: newIsPublic })
+      .eq("id", projectId);
+    if (!error) {
+      setProject({ ...project, is_public: newIsPublic });
+    }
+  }
+
   async function handleSurfaceSave() {
     if (!project) return;
     const parsed = parseFloat(surfaceDraft) || null;
@@ -113,6 +126,20 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
               {project.name}
             </h1>
           )}
+          {project.is_public && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-muted-foreground font-mono">
+                {typeof window !== 'undefined' ? `${window.location.origin}/share/${projectId}` : ''}
+              </span>
+              <button
+                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/share/${projectId}`)}
+                className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                title="Copy link"
+              >
+                Copy
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
             <span>Surface area:</span>
             <input
@@ -130,6 +157,17 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleShareToggle}
+            className={`text-xs border rounded px-2 py-1 transition-colors cursor-pointer
+              ${project.is_public
+                ? 'bg-green-500/20 border-green-500/50 text-green-700 hover:bg-green-500/30'
+                : 'hover:bg-accent text-muted-foreground'
+              }`}
+            title={project.is_public ? 'Project is public — click to make private' : 'Make project shareable'}
+          >
+            {project.is_public ? '🔗 Shared' : 'Share'}
+          </button>
           <AiGenerateButton projectId={projectId} />
           <CutListButton projectId={projectId} />
           <ShoppingListButton projectId={projectId} />

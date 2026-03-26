@@ -96,6 +96,7 @@ export interface Project {
   waste_factor: number        // 0.15 = 15%
   surface_area_sqft: number | null
   status: 'active' | 'archived'
+  is_public: boolean
   created_at: string
   updated_at: string
 }
