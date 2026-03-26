@@ -77,7 +77,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const parsed = JSON.parse(content.text) as {
+    const jsonText = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    const parsed = JSON.parse(jsonText) as {
       lumberItems: Array<{
         species: string;
         thickness_in: number;
