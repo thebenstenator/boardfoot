@@ -24,6 +24,7 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [surfaceDraft, setSurfaceDraft] = useState<string>('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadProject(projectId);
@@ -132,11 +133,16 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
                 {typeof window !== 'undefined' ? `${window.location.origin}/share/${projectId}` : ''}
               </span>
               <button
-                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/share/${projectId}`)}
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/share/${projectId}`)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
                 className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                aria-label="Copy share link"
                 title="Copy link"
               >
-                Copy
+                {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
           )}
@@ -164,6 +170,7 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
                 ? 'bg-green-500/20 border-green-500/50 text-green-700 hover:bg-green-500/30'
                 : 'hover:bg-accent text-muted-foreground'
               }`}
+            aria-label={project.is_public ? 'Project is public — click to make private' : 'Make project shareable'}
             title={project.is_public ? 'Project is public — click to make private' : 'Make project shareable'}
           >
             {project.is_public ? '🔗 Shared' : 'Share'}

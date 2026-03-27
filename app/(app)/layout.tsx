@@ -60,6 +60,12 @@ export default async function AppLayout({
               BoardFoot
             </Link>
             <Link
+              href="/dashboard"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Projects
+            </Link>
+            <Link
               href="/templates"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useProjectStore } from "@/store/projectStore";
 import type {
@@ -13,6 +13,7 @@ export function useLumberItems(projectId: string) {
     useProjectStore();
 
   const supabase = createClient();
+  const pendingDeletes = useRef<Map<string, { item: LumberItem; timeout: ReturnType<typeof setTimeout> }>>(new Map());
 
   const addItem = useCallback(async () => {
     const newItem = {
@@ -64,27 +65,40 @@ export function useLumberItems(projectId: string) {
   );
 
   const removeItem = useCallback(
-    async (id: string) => {
-      // Optimistic update
+    (id: string): LumberItem | null => {
+      const item = lumberItems.find((i) => i.id === id) ?? null;
+      if (!item) return null;
+
+      // Optimistic: remove from store immediately
       removeLumberItem(id);
 
-      const { error } = await supabase
-        .from("lumber_items")
-        .delete()
-        .eq("id", id);
+      // Schedule DB delete in 5s — cancelled if undo is called
+      const timeout = setTimeout(async () => {
+        await supabase.from("lumber_items").delete().eq("id", id);
+        pendingDeletes.current.delete(id);
+      }, 5000);
 
-      if (error) {
-        console.error("Failed to remove lumber item:", error);
-      }
+      pendingDeletes.current.set(id, { item, timeout });
+      return item;
     },
-    [supabase, removeLumberItem],
+    [lumberItems, removeLumberItem, supabase],
   );
+
+  const undoRemove = useCallback((id: string) => {
+    const pending = pendingDeletes.current.get(id);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    pendingDeletes.current.delete(id);
+    // Row still exists in DB (delete was deferred) — restore to store only
+    addLumberItem(pending.item);
+  }, [addLumberItem]);
 
   return {
     items: lumberItems,
     addItem,
     updateItem,
     removeItem,
+    undoRemove,
   };
 }
 
@@ -97,6 +111,7 @@ export function useHardwareItems(projectId: string) {
   } = useProjectStore();
 
   const supabase = createClient();
+  const pendingDeletes = useRef<Map<string, { item: HardwareItem; timeout: ReturnType<typeof setTimeout> }>>(new Map());
 
   const addItem = useCallback(async () => {
     const newItem = {
@@ -140,26 +155,37 @@ export function useHardwareItems(projectId: string) {
   );
 
   const removeItem = useCallback(
-    async (id: string) => {
+    (id: string): HardwareItem | null => {
+      const item = hardwareItems.find((i) => i.id === id) ?? null;
+      if (!item) return null;
+
       removeHardwareItem(id);
 
-      const { error } = await supabase
-        .from("hardware_items")
-        .delete()
-        .eq("id", id);
+      const timeout = setTimeout(async () => {
+        await supabase.from("hardware_items").delete().eq("id", id);
+        pendingDeletes.current.delete(id);
+      }, 5000);
 
-      if (error) {
-        console.error("Failed to remove hardware item:", error);
-      }
+      pendingDeletes.current.set(id, { item, timeout });
+      return item;
     },
-    [supabase, removeHardwareItem],
+    [hardwareItems, removeHardwareItem, supabase],
   );
+
+  const undoRemove = useCallback((id: string) => {
+    const pending = pendingDeletes.current.get(id);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    pendingDeletes.current.delete(id);
+    addHardwareItem(pending.item);
+  }, [addHardwareItem]);
 
   return {
     items: hardwareItems,
     addItem,
     updateItem,
     removeItem,
+    undoRemove,
   };
 }
 
@@ -168,6 +194,7 @@ export function useFinishItems(projectId: string) {
     useProjectStore();
 
   const supabase = createClient();
+  const pendingDeletes = useRef<Map<string, { item: FinishItem; timeout: ReturnType<typeof setTimeout> }>>(new Map());
 
   const addItem = useCallback(async () => {
     const newItem = {
@@ -210,26 +237,37 @@ export function useFinishItems(projectId: string) {
   );
 
   const removeItem = useCallback(
-    async (id: string) => {
+    (id: string): FinishItem | null => {
+      const item = finishItems.find((i) => i.id === id) ?? null;
+      if (!item) return null;
+
       removeFinishItem(id);
 
-      const { error } = await supabase
-        .from("finish_items")
-        .delete()
-        .eq("id", id);
+      const timeout = setTimeout(async () => {
+        await supabase.from("finish_items").delete().eq("id", id);
+        pendingDeletes.current.delete(id);
+      }, 5000);
 
-      if (error) {
-        console.error("Failed to remove finish item:", error);
-      }
+      pendingDeletes.current.set(id, { item, timeout });
+      return item;
     },
-    [supabase, removeFinishItem],
+    [finishItems, removeFinishItem, supabase],
   );
+
+  const undoRemove = useCallback((id: string) => {
+    const pending = pendingDeletes.current.get(id);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    pendingDeletes.current.delete(id);
+    addFinishItem(pending.item);
+  }, [addFinishItem]);
 
   return {
     items: finishItems,
     addItem,
     updateItem,
     removeItem,
+    undoRemove,
   };
 }
 

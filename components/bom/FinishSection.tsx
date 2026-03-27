@@ -45,8 +45,24 @@ interface FinishSectionProps {
 }
 
 export function FinishSection({ projectId }: FinishSectionProps) {
-  const { items, addItem, updateItem, removeItem } = useFinishItems(projectId);
+  const { items, addItem, updateItem, removeItem, undoRemove } = useFinishItems(projectId);
   const totals = useProjectStore((state) => state.totals);
+  const [undoState, setUndoState] = useState<{ id: string; label: string } | null>(null);
+  const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleRemove(id: string, label: string) {
+    removeItem(id);
+    if (undoTimerRef[0]) clearTimeout(undoTimerRef[0]);
+    setUndoState({ id, label });
+    undoTimerRef[1](setTimeout(() => setUndoState(null), 5000));
+  }
+
+  function handleUndo() {
+    if (!undoState) return;
+    if (undoTimerRef[0]) clearTimeout(undoTimerRef[0]);
+    undoRemove(undoState.id);
+    setUndoState(null);
+  }
 
   const TAB_OFFSET = 900;
   const TAB_STOPS_PER_ROW = 5;
@@ -171,8 +187,9 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                     </div>
                     <div className={col.delete}>
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => handleRemove(item.id, item.description || "consumable row")}
                         tabIndex={baseTab + 4}
+                        aria-label={`Delete ${item.description || "consumable row"}`}
                         className="cursor-pointer text-muted-foreground hover:text-destructive
                       text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
                       >
@@ -182,6 +199,21 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                   </div>
                 );
               })}
+
+              {undoState && (
+                <div className="flex items-center justify-between mt-2 px-3 py-2 rounded bg-muted text-sm">
+                  <span className="text-muted-foreground">
+                    &ldquo;{undoState.label}&rdquo; deleted
+                  </span>
+                  <button
+                    onClick={handleUndo}
+                    aria-label="Undo delete"
+                    className="font-medium underline hover:text-foreground focus:outline-none"
+                  >
+                    Undo
+                  </button>
+                </div>
+              )}
 
               <div className="flex justify-end text-sm pt-3">
                 <span className="font-medium">

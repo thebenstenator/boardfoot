@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (searchParams.get("upgrade") === "true") {
@@ -79,11 +80,24 @@ export default function DashboardPage() {
           </Button>
         </div>
 
+        {!loading && projects.length > 3 && (
+          <input
+            type="search"
+            placeholder="Search projects..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search projects"
+            className="w-full max-w-sm px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+        )}
+
         {loading ? (
           <p className="text-muted-foreground text-sm">Loading...</p>
         ) : projects.length > 0 ? (
           <div className="grid gap-4">
-            {projects.map((project) => (
+            {projects.filter(p =>
+              !search || p.name.toLowerCase().includes(search.toLowerCase())
+            ).map((project) => (
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}

@@ -303,7 +303,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       supabase.from('lumber_items').select('*').eq('project_id', projectId).order('sort_order'),
       supabase.from('hardware_items').select('*').eq('project_id', projectId).order('sort_order'),
       supabase.from('finish_items').select('*').eq('project_id', projectId).order('sort_order'),
-      supabase.from('project_labor').select('*').eq('project_id', projectId).single(),
+      supabase.from('project_labor').select('*').eq('project_id', projectId).maybeSingle(),
     ])
 
     if (!project) {

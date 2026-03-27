@@ -112,7 +112,7 @@ export default function OverheadPage() {
           />
         </div>
 
-        {monthlyOverhead && projectsPerMonth && (
+        {monthlyOverhead && projectsPerMonth && parseInt(projectsPerMonth) > 0 && (
           <p className="text-sm text-muted-foreground">
             = $
             {(parseFloat(monthlyOverhead) / parseInt(projectsPerMonth)).toFixed(
@@ -120,6 +120,9 @@ export default function OverheadPage() {
             )}{" "}
             overhead per project
           </p>
+        )}
+        {projectsPerMonth && parseInt(projectsPerMonth) <= 0 && (
+          <p className="text-sm text-destructive">Projects per month must be at least 1.</p>
         )}
       </div>
 

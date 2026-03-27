@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLumberItems } from "@/hooks/useLineItems";
 import {
   calculateBoardFeetFlexible,
@@ -31,7 +32,23 @@ interface LumberSectionProps {
 }
 
 export function LumberSection({ projectId }: LumberSectionProps) {
-  const { items, addItem, updateItem, removeItem } = useLumberItems(projectId);
+  const { items, addItem, updateItem, removeItem, undoRemove } = useLumberItems(projectId);
+  const [undoState, setUndoState] = useState<{ id: string; label: string } | null>(null);
+  const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleRemove(id: string, label: string) {
+    removeItem(id);
+    if (undoTimerRef[0]) clearTimeout(undoTimerRef[0]);
+    setUndoState({ id, label });
+    undoTimerRef[1](setTimeout(() => setUndoState(null), 5000));
+  }
+
+  function handleUndo() {
+    if (!undoState) return;
+    if (undoTimerRef[0]) clearTimeout(undoTimerRef[0]);
+    undoRemove(undoState.id);
+    setUndoState(null);
+  }
   const project = useProjectStore((state) => state.project);
   const totals = useProjectStore((state) => state.totals);
 
@@ -166,6 +183,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                             })
                           }
                           tabIndex={-1}
+                          aria-label={item.is_reclaimed ? "Unmark reclaimed" : "Mark as reclaimed/on-hand"}
                           title={
                             item.is_reclaimed
                               ? "Reclaimed/on-hand — click to unmark"
@@ -226,6 +244,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                         <button
                           onClick={() => handleUnitToggle(item)}
                           tabIndex={baseTab + 4}
+                          aria-label={`Length unit: ${item.length_unit ?? "ft"} — click to toggle`}
                           className="cursor-pointer text-xs border rounded px-1.5 py-0.5
                                     hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
                         >
@@ -251,6 +270,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                             })
                           }
                           tabIndex={baseTab + 6}
+                          aria-label={`Pricing mode: ${item.pricing_mode === "per_bf" ? "per board foot" : "per linear foot"} — click to toggle`}
                           className="cursor-pointer text-xs border rounded px-1.5 py-0.5
                             hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring"
                         >
@@ -278,8 +298,9 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                       </div>
                       <div className={col.delete}>
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => handleRemove(item.id, item.species || "lumber row")}
                           tabIndex={baseTab + 8}
+                          aria-label={`Delete ${item.species || "lumber row"}`}
                           className="cursor-pointer text-muted-foreground hover:text-destructive
                             text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
                         >
@@ -289,6 +310,21 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                     </div>
                   );
                 })}
+                {/* Undo banner */}
+                {undoState && (
+                  <div className="flex items-center justify-between mt-2 px-3 py-2 rounded bg-muted text-sm">
+                    <span className="text-muted-foreground">
+                      &ldquo;{undoState.label}&rdquo; deleted
+                    </span>
+                    <button
+                      onClick={handleUndo}
+                      aria-label="Undo delete"
+                      className="font-medium underline hover:text-foreground focus:outline-none"
+                    >
+                      Undo
+                    </button>
+                  </div>
+                )}
                 {/* Waste footer */}
                 <div className="flex justify-start sm:justify-end items-center gap-6 text-sm pt-3">
                   <span className="text-muted-foreground">

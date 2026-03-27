@@ -88,6 +88,18 @@ export function LandingPage() {
                 "Track lumber, hardware, and consumables in one project. See your complete material cost at a glance, updated in real time as you add items.",
             },
             {
+              icon: "✨",
+              title: "AI BOM generator",
+              description:
+                "Describe your project in plain English and let AI draft your bill of materials. Edit, refine, and add to your project in seconds instead of minutes.",
+            },
+            {
+              icon: "🪚",
+              title: "Cut list optimizer",
+              description:
+                "Automatically pack your cut pieces onto stock boards using bin-packing to minimize waste. Visual diagrams show exactly how to cut each board.",
+            },
+            {
               icon: "💰",
               title: "Know your true COGS",
               description:
@@ -98,18 +110,6 @@ export function LandingPage() {
               title: "Shopping list by store",
               description:
                 "Export a shopping list grouped by lumber yard, big box store, and specialty shop. Make one efficient trip and buy exactly what you need.",
-            },
-            {
-              icon: "📄",
-              title: "Print-ready PDF export",
-              description:
-                "Generate a clean BOM report to bring to the lumber yard or attach to a client quote. Free tier includes a branded PDF.",
-            },
-            {
-              icon: "🪵",
-              title: "Species price database",
-              description:
-                "Built-in price estimates for 30+ wood species. Override with your local prices and they're remembered for every future project.",
             },
           ].map((feature) => (
             <div key={feature.title} className="space-y-3">
@@ -146,6 +146,7 @@ export function LandingPage() {
                   "Live cost summary",
                   "Branded PDF export",
                   "Species price database",
+                  "5 AI BOM generations",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <span className="text-green-500">✓</span>
@@ -181,6 +182,8 @@ export function LandingPage() {
                 {[
                   "Everything in Free",
                   "Unlimited projects",
+                  "Unlimited AI BOM generation",
+                  "Cut list optimizer",
                   "Clean unbranded PDF export",
                   "Labor & overhead tracking",
                   "Suggested retail + Etsy pricing",
@@ -195,7 +198,7 @@ export function LandingPage() {
               </ul>
               <Link href="/signup" className="block">
                 <Button className="w-full cursor-pointer">
-                  Start free trial
+                  Get started free
                 </Button>
               </Link>
             </div>
