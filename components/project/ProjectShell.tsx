@@ -11,7 +11,6 @@ import { ExportButton } from "@/components/bom/ExportButton";
 import { LaborSection } from "@/components/bom/LaborSection";
 import { ShoppingListButton } from "@/components/bom/ShoppingListbutton";
 import { PhotoGallery } from "@/components/project/PhotoGallery";
-import { AiGenerateButton } from "@/components/bom/AiGenerateButton";
 import { CutListButton } from "@/components/bom/CutListButton";
 
 interface ProjectShellProps {
@@ -250,7 +249,7 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
           >
             {project.is_public ? '🔗 Shared' : 'Share'}
           </button>
-          <AiGenerateButton projectId={projectId} />
+
           <CutListButton projectId={projectId} />
           <ShoppingListButton projectId={projectId} />
           <ExportButton projectId={projectId} />

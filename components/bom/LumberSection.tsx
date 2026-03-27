@@ -166,7 +166,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                   <span className={`${col.md} pl-1`}>L</span>
                   <span className={col.toggle}>L ft/in</span>
                   <span className={`${col.sm} pl-1`}>Qty</span>
-                  <span className={`${col.toggle} pl-1`}>Unit</span>
+                  <span className={`${col.pricingMode} pl-1`}>Unit</span>
                   <span className={`${col.lg} pl-1`}>Price</span>
                   <span className={`${col.sm} pl-1`}>BF</span>
                   <span className={col.last}>Total</span>
@@ -286,7 +286,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           tabIndex={baseTab + 5}
                         />
                       </div>
-                      <div className={col.toggle}>
+                      <div className={col.pricingMode}>
                         <Select
                           value={item.pricing_mode}
                           onValueChange={(v) =>

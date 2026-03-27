@@ -21,7 +21,7 @@ interface GeneratedBom {
     width_in: number;
     length_ft: number;
     quantity: number;
-    pricing_mode: "per_bf" | "per_lf";
+    pricing_mode: "per_bf" | "per_lf" | "per_piece";
     price_per_unit: number;
   }>;
   hardwareItems: Array<{
@@ -32,21 +32,26 @@ interface GeneratedBom {
   }>;
   finishItems: Array<{
     description: string;
+    container_size: number;
     container_cost: number;
+    amount_used: number;
     fraction_used: number;
+    unit: string;
   }>;
 }
 
 interface AiGenerateModalProps {
-  projectId: string;
+  projectId?: string;
   open: boolean;
   onClose: () => void;
+  onCreated?: (projectId: string) => void;
 }
 
 export function AiGenerateModal({
   projectId,
   open,
   onClose,
+  onCreated,
 }: AiGenerateModalProps) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -95,11 +100,26 @@ export function AiGenerateModal({
     const supabase = createClient();
 
     try {
+      // If no projectId, create a new project first
+      let targetProjectId = projectId;
+      if (!targetProjectId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const name = prompt.trim().slice(0, 60) || "Untitled Project";
+        const { data: newProject, error: projectError } = await supabase
+          .from("projects")
+          .insert({ user_id: user.id, name })
+          .select()
+          .single();
+        if (projectError || !newProject) throw new Error("Failed to create project");
+        targetProjectId = newProject.id;
+      }
+
       // Insert lumber items
       for (let i = 0; i < preview.lumberItems.length; i++) {
         const item = preview.lumberItems[i];
         const newItem = {
-          project_id: projectId,
+          project_id: targetProjectId,
           species: item.species,
           thickness_in: item.thickness_in,
           width_in: item.width_in,
@@ -129,7 +149,7 @@ export function AiGenerateModal({
       for (let i = 0; i < preview.hardwareItems.length; i++) {
         const item = preview.hardwareItems[i];
         const newItem = {
-          project_id: projectId,
+          project_id: targetProjectId,
           description: item.description,
           quantity: item.quantity,
           unit: item.unit,
@@ -153,13 +173,13 @@ export function AiGenerateModal({
       for (let i = 0; i < preview.finishItems.length; i++) {
         const item = preview.finishItems[i];
         const newItem = {
-          project_id: projectId,
+          project_id: targetProjectId,
           description: item.description,
+          container_size: item.container_size ?? null,
           container_cost: item.container_cost,
+          amount_used: item.amount_used ?? null,
           fraction_used: item.fraction_used,
-          container_size: null,
-          amount_used: null,
-          unit: "",
+          unit: item.unit ?? "",
           notes: "",
           sort_order: finishItems.length + i,
         };
@@ -175,7 +195,11 @@ export function AiGenerateModal({
         }
       }
 
-      onClose();
+      if (onCreated && targetProjectId) {
+        onCreated(targetProjectId);
+      } else {
+        onClose();
+      }
     } catch (err) {
       console.error("Failed to apply BOM:", err);
     } finally {
@@ -293,7 +317,7 @@ export function AiGenerateModal({
                         </span>
                         <span className="shrink-0 text-foreground">
                           ${item.price_per_unit.toFixed(2)}/
-                          {item.pricing_mode === "per_bf" ? "BF" : "LF"}
+                          {item.pricing_mode === "per_bf" ? "BF" : item.pricing_mode === "per_lf" ? "LF" : "piece"}
                         </span>
                       </li>
                     ))}
@@ -334,8 +358,10 @@ export function AiGenerateModal({
                     {preview.finishItems.map((item, i) => (
                       <li key={i} className="flex justify-between gap-2">
                         <span>
-                          {item.description} —{" "}
-                          {Math.round(item.fraction_used * 100)}% used
+                          {item.description}
+                          {item.container_size
+                            ? ` — ${item.amount_used ?? Math.round(item.fraction_used * item.container_size)}/${item.container_size} ${item.unit}`
+                            : ` — ${Math.round(item.fraction_used * 100)}% used`}
                         </span>
                         <span className="shrink-0 text-foreground">
                           ${(item.container_cost * item.fraction_used).toFixed(2)}

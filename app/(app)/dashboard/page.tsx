@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Button } from "@/components/ui/button";
+import { AiGenerateModal } from "@/components/bom/AiGenerateModal";
 import type { Project } from "@/types/bom";
 
 function DashboardContent() {
@@ -16,6 +17,7 @@ function DashboardContent() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
   const [search, setSearch] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState("");
@@ -61,6 +63,14 @@ function DashboardContent() {
     if (project) router.push(`/projects/${project.id}`);
   }
 
+  function handleOpenAiModal() {
+    if (tier === "free" && projects.length >= 3) {
+      setShowUpgrade(true);
+      return;
+    }
+    setShowAiModal(true);
+  }
+
   async function handleRename(id: string) {
     const name = renameDraft.trim();
     setRenamingId(null);
@@ -90,13 +100,23 @@ function DashboardContent() {
           onClose={() => setShowUpgrade(false)}
         />
       )}
+      <AiGenerateModal
+        open={showAiModal}
+        onClose={() => setShowAiModal(false)}
+        onCreated={(id) => router.push(`/projects/${id}`)}
+      />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Your Projects</h1>
-          <Button onClick={handleCreateProject} className="cursor-pointer">
-            + New Project
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleOpenAiModal} className="cursor-pointer">
+              ✦ Generate with AI
+            </Button>
+            <Button onClick={handleCreateProject} className="cursor-pointer">
+              + New Project
+            </Button>
+          </div>
         </div>
 
         {!loading && projects.length > 3 && (

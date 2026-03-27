@@ -10,7 +10,8 @@ export const col = {
   delete: "w-4 shrink-0",
   sm: "flex-1 min-w-0",
   md: "flex-1 min-w-0",
-  lg: "flex-1 min-w-0",
+  lg: "flex-[1.5] min-w-0",
   toggle: "w-10 shrink-0",
+  pricingMode: "w-[4.5rem] shrink-0",
   unit: "flex-1 min-w-0",
 };
