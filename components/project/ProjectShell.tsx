@@ -21,6 +21,7 @@ interface ProjectShellProps {
 
 export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   const { loadProject, project, isLoading, setProject, passSavingsToCustomer, setPassSavingsToCustomer } = useProjectStore();
+  const hasReclaimed = useProjectStore((state) => state.lumberItems.some((i) => i.is_reclaimed));
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   // Surface area inputs: L ft+in, W ft+in
@@ -162,54 +163,54 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
             </div>
           )}
           {/* Surface area — ft+in inputs */}
-          <div className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground mt-1">
-            <span>Price/sq ft — enter dimensions:</span>
+          <div className="flex flex-wrap items-center gap-0.5 text-sm text-muted-foreground mt-1">
+            <span className="mr-1">Price/sq ft — enter dimensions:</span>
             <input
-              type="number"
+              type="text"
               inputMode="decimal"
               value={dimLft}
-              placeholder="L"
+              placeholder="0"
               onChange={(e) => setDimLft(e.target.value)}
               onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-              className="w-12 bg-transparent border-b border-transparent hover:border-border
-                         focus:border-ring focus:outline-none text-sm text-foreground"
+              className="w-9 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground text-right"
             />
             <span>ft</span>
             <input
-              type="number"
+              type="text"
               inputMode="decimal"
               value={dimLin}
               placeholder="0"
               onChange={(e) => setDimLin(e.target.value)}
               onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-              className="w-10 bg-transparent border-b border-transparent hover:border-border
-                         focus:border-ring focus:outline-none text-sm text-foreground"
+              className="w-9 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground text-right ml-1"
             />
             <span>in ×</span>
             <input
-              type="number"
+              type="text"
               inputMode="decimal"
               value={dimWft}
-              placeholder="W"
+              placeholder="0"
               onChange={(e) => setDimWft(e.target.value)}
               onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-              className="w-12 bg-transparent border-b border-transparent hover:border-border
-                         focus:border-ring focus:outline-none text-sm text-foreground"
+              className="w-9 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground text-right ml-1"
             />
             <span>ft</span>
             <input
-              type="number"
+              type="text"
               inputMode="decimal"
               value={dimWin}
               placeholder="0"
               onChange={(e) => setDimWin(e.target.value)}
               onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-              className="w-10 bg-transparent border-b border-transparent hover:border-border
-                         focus:border-ring focus:outline-none text-sm text-foreground"
+              className="w-9 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground text-right ml-1"
             />
             <span>in</span>
             {computedSqft !== null && (
@@ -223,16 +224,18 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
               </span>
             )}
           </div>
-          {/* Reclaimed savings toggle */}
-          <label className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={passSavingsToCustomer}
-              onChange={(e) => setPassSavingsToCustomer(e.target.checked)}
-              className="rounded"
-            />
-            Pass reclaimed savings to customer
-          </label>
+          {/* Reclaimed savings toggle — only shown when at least one lumber item is reclaimed */}
+          {hasReclaimed && (
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={passSavingsToCustomer}
+                onChange={(e) => setPassSavingsToCustomer(e.target.checked)}
+                className="rounded"
+              />
+              Pass reclaimed savings to customer
+            </label>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button
