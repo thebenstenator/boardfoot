@@ -23,7 +23,8 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   const { loadProject, project, isLoading, setProject } = useProjectStore();
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  const [surfaceDraft, setSurfaceDraft] = useState<string>('');
+  const [dimL, setDimL] = useState('');
+  const [dimW, setDimW] = useState('');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -31,8 +32,9 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   }, [projectId, loadProject]);
 
   useEffect(() => {
-    setSurfaceDraft(String(project?.surface_area_sqft ?? ''));
-  }, [project]);
+    // Initialise dimension inputs from saved sqft (can't reverse-calculate L×W, so leave blank if already set)
+    if (!project?.surface_area_sqft) { setDimL(''); setDimW(''); }
+  }, [project?.id]);
 
   async function handleShareToggle() {
     if (!project) return;
@@ -47,9 +49,11 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
     }
   }
 
-  async function handleSurfaceSave() {
+  async function handleSurfaceSave(l: string, w: string) {
     if (!project) return;
-    const parsed = parseFloat(surfaceDraft) || null;
+    const lVal = parseFloat(l);
+    const wVal = parseFloat(w);
+    const parsed = lVal > 0 && wVal > 0 ? parseFloat((lVal * wVal).toFixed(2)) : null;
     const supabase = createClient();
     const { error } = await supabase
       .from("projects")
@@ -147,19 +151,36 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
             </div>
           )}
           <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-            <span>Surface area:</span>
+            <span>Surface:</span>
             <input
               type="number"
               inputMode="decimal"
-              value={surfaceDraft}
-              placeholder="sq ft"
-              onChange={(e) => setSurfaceDraft(e.target.value)}
-              onBlur={handleSurfaceSave}
+              value={dimL}
+              placeholder="L"
+              onChange={(e) => setDimL(e.target.value)}
+              onBlur={(e) => handleSurfaceSave(e.target.value, dimW)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-              className="w-20 bg-transparent border-b border-transparent hover:border-border
+              className="w-14 bg-transparent border-b border-transparent hover:border-border
                          focus:border-ring focus:outline-none text-sm text-foreground"
             />
-            <span>sq ft</span>
+            <span>×</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              value={dimW}
+              placeholder="W"
+              onChange={(e) => setDimW(e.target.value)}
+              onBlur={(e) => handleSurfaceSave(dimL, e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+              className="w-14 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground"
+            />
+            <span>ft</span>
+            {project?.surface_area_sqft && project.surface_area_sqft > 0 && (
+              <span className="text-xs text-muted-foreground">
+                = {project.surface_area_sqft} sq ft
+              </span>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">

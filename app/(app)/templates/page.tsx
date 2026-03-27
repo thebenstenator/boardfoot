@@ -4,12 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { TEMPLATES, TEMPLATE_CATEGORIES } from "@/lib/templates/templates";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Button } from "@/components/ui/button";
 
 export default function TemplatesPage() {
   const router = useRouter();
+  const { tier } = useSubscription();
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [cloning, setCloningId] = useState<string | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const filtered =
     selectedCategory === "All"
@@ -19,13 +23,25 @@ export default function TemplatesPage() {
   async function handleClone(templateId: string) {
     setCloningId(templateId);
     const template = TEMPLATES.find((t) => t.id === templateId);
-    if (!template) return;
+    if (!template) { setCloningId(null); return; }
 
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setCloningId(null); return; }
+
+    // Enforce free tier project cap
+    if (tier === "free") {
+      const { count } = await supabase
+        .from("projects")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "active");
+      if ((count ?? 0) >= 3) {
+        setCloningId(null);
+        setShowUpgrade(true);
+        return;
+      }
+    }
 
     // Create project
     const { data: project, error } = await supabase
@@ -82,6 +98,12 @@ export default function TemplatesPage() {
 
   return (
     <div className="space-y-6">
+      {showUpgrade && (
+        <UpgradeModal
+          feature="Unlimited projects"
+          onClose={() => setShowUpgrade(false)}
+        />
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Project Templates</h1>

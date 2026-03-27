@@ -9,7 +9,10 @@ interface UpgradeModalProps {
 
 export function UpgradeModal({ feature, onClose }: UpgradeModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
       <div className="bg-background border rounded-lg p-6 max-w-sm w-full space-y-4">
         <h2 className="text-lg font-semibold">Upgrade to Pro</h2>
         <p className="text-sm text-muted-foreground">

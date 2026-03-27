@@ -78,13 +78,19 @@ export function CostSummary() {
             : '—'}
           muted={totals.labor.total === 0}
         />
-        <SummaryRow
-          label="Overhead share"
-          value={totals.overhead.share > 0
-            ? formatCurrency(totals.overhead.share)
-            : '—'}
-          muted={totals.overhead.share === 0}
-        />
+        {totals.overhead.share > 0 ? (
+          <SummaryRow
+            label="Overhead share"
+            value={formatCurrency(totals.overhead.share)}
+          />
+        ) : (
+          <div className="flex justify-between items-center text-sm text-muted-foreground">
+            <span>Overhead share</span>
+            <a href="/settings/overhead" className="text-xs underline hover:text-foreground">
+              Set in shop settings
+            </a>
+          </div>
+        )}
       </div>
 
       <Divider />
