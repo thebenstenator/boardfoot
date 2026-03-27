@@ -56,7 +56,7 @@ export default function OverheadPage() {
   }
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-lg mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Shop Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -144,9 +144,16 @@ export default function OverheadPage() {
         </div>
       </div>
 
-      <Button onClick={handleSave} disabled={saving} className="cursor-pointer">
-        {saved ? "Saved!" : saving ? "Saving..." : "Save settings"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button onClick={handleSave} disabled={saving} className="cursor-pointer">
+          {saving ? "Saving..." : "Save settings"}
+        </Button>
+        {saved && (
+          <span className="text-sm font-medium text-green-600">
+            Settings saved!
+          </span>
+        )}
+      </div>
     </div>
   );
 }
