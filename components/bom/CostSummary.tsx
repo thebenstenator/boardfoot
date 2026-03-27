@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { useProjectStore } from '@/store/projectStore'
 import { useUserStore } from '@/store/userStore'
 import { calculateEtsyFees } from '@/lib/calculations/etsyFees'
@@ -8,6 +9,19 @@ export function CostSummary() {
   const totals = useProjectStore((state) => state.totals)
   const project = useProjectStore((state) => state.project)
   const profile = useProjectStore((state) => state.profile)
+  const passSavingsToCustomer = useProjectStore((state) => state.passSavingsToCustomer)
+
+  // Flash ring when totals change
+  const [flashed, setFlashed] = useState(false)
+  const prevTotalsRef = useRef(totals)
+  useEffect(() => {
+    if (prevTotalsRef.current !== totals) {
+      prevTotalsRef.current = totals
+      setFlashed(true)
+      const t = setTimeout(() => setFlashed(false), 600)
+      return () => clearTimeout(t)
+    }
+  }, [totals])
 
   function formatCurrency(n: number) {
     return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
@@ -25,7 +39,9 @@ export function CostSummary() {
   const etsyFees = calculateEtsyFees(totals.etsyListingPrice)
 
   return (
-    <div className="rounded-lg border bg-card p-6 space-y-4">
+    <div className={`rounded-lg border bg-card p-6 space-y-4 transition-all duration-500 ${
+      flashed ? 'ring-1 ring-primary/40' : ''
+    }`}>
       <h2 className="text-lg font-semibold">Cost Summary</h2>
 
       {/* Materials */}
@@ -43,11 +59,18 @@ export function CostSummary() {
           highlight
         />
         {totals.lumber.reclaimedSavings > 0 && (
-          <SummaryRow
-            label="♻ Reclaimed savings"
-            value={`−${formatCurrency(totals.lumber.reclaimedSavings)}`}
-            muted
-          />
+          <>
+            <SummaryRow
+              label="♻ Reclaimed savings"
+              value={`−${formatCurrency(totals.lumber.reclaimedSavings)}`}
+              muted
+            />
+            <p className="text-xs text-muted-foreground pl-1">
+              {passSavingsToCustomer
+                ? 'Passed to customer (lower retail)'
+                : 'Priced at market rate — woodworker keeps savings'}
+            </p>
+          </>
         )}
         <SummaryRow
           label="Hardware"

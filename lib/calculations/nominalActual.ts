@@ -61,3 +61,17 @@ export function getActualToNominal(thickness: number, width: number): string | n
   }
   return null
 }
+
+/**
+ * Alias for getNominalActual, for convenience.
+ */
+export { getNominalActual as getNominalToActual }
+
+/**
+ * Common nominal lumber sizes for autocomplete dropdowns.
+ */
+export const COMMON_NOMINAL_SIZES: string[] = [
+  '1x2','1x3','1x4','1x6','1x8','1x10','1x12',
+  '2x2','2x3','2x4','2x6','2x8','2x10','2x12',
+  '4x4','4x6',
+]

@@ -9,7 +9,7 @@ export type LengthUnit = 'ft' | 'in'
 
 // ─── Lumber ───────────────────────────────────────────────────────────────────
 
-export type PricingMode = 'per_bf' | 'per_lf'
+export type PricingMode = 'per_bf' | 'per_lf' | 'per_piece'
 
 export interface LumberItem {
   id: string
@@ -97,6 +97,7 @@ export interface Project {
   surface_area_sqft: number | null
   status: 'active' | 'archived'
   is_public: boolean
+  pass_reclaimed_to_customer: boolean
   created_at: string
   updated_at: string
 }

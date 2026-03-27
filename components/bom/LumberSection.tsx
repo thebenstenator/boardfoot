@@ -13,6 +13,13 @@ import { SpeciesInput } from "@/components/bom/SpeciesInput";
 import type { LumberItem, LengthUnit } from "@/types/bom";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -96,6 +103,9 @@ export function LumberSection({ projectId }: LumberSectionProps) {
   }
 
   function getLineTotal(item: LumberItem): number {
+    if (item.pricing_mode === "per_piece") {
+      return item.price_per_unit * item.quantity;
+    }
     const bf = getLineBF(item);
     if (item.pricing_mode === "per_lf") {
       const bfPrice = convertLFtoBFPrice(
@@ -125,7 +135,17 @@ export function LumberSection({ projectId }: LumberSectionProps) {
       <div className={bomSection}>
         <div className={bomSectionHeader}>
           <h2 className="text-lg font-semibold">Lumber</h2>
-          <Button size="sm" onClick={addItem}>
+          <Button
+            size="sm"
+            onClick={() => {
+              addItem();
+              setTimeout(() => {
+                const rows = document.querySelectorAll('[data-lumber-row]');
+                const last = rows[rows.length - 1];
+                (last?.querySelector('input') as HTMLInputElement)?.focus();
+              }, 50);
+            }}
+          >
             + Add lumber
           </Button>
         </div>
@@ -140,13 +160,13 @@ export function LumberSection({ projectId }: LumberSectionProps) {
               <div className="min-w-[800px] sm:min-w-0">
                 {/* Header row */}
                 <div className={bomHeader}>
-                  <span className={`${col.first}`}>Species</span>
+                  <span className={`${col.first}`}>Item</span>
                   <span className={`${col.md} pl-1`}>T(in)</span>
                   <span className={`${col.md} pl-1`}>W(in)</span>
                   <span className={`${col.md} pl-1`}>L</span>
                   <span className={col.toggle}>L ft/in</span>
                   <span className={`${col.sm} pl-1`}>Qty</span>
-                  <span className={`${col.toggle} pl-1`}>Mode</span>
+                  <span className={`${col.toggle} pl-1`}>Unit</span>
                   <span className={`${col.lg} pl-1`}>Price</span>
                   <span className={`${col.sm} pl-1`}>BF</span>
                   <span className={col.last}>Total</span>
@@ -161,16 +181,23 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                   return (
                     <div
                       key={item.id}
+                      data-lumber-row
                       className={`${bomRow} group border-b hover:bg-muted/30`}
                     >
                       <div className={`${col.first} relative`} title={item.species}>
                         <SpeciesInput
                           value={item.species}
-                          onChange={(species, suggestedPrice) => {
+                          onChange={(species, suggestedPrice, dimensions) => {
                             handleUpdate(item.id, "species", species);
                             if (suggestedPrice !== undefined) {
                               updateItem(item.id, {
                                 price_per_unit: suggestedPrice,
+                              });
+                            }
+                            if (dimensions) {
+                              updateItem(item.id, {
+                                thickness_in: dimensions.thickness,
+                                width_in: dimensions.width,
                               });
                             }
                           }}
@@ -260,22 +287,24 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                         />
                       </div>
                       <div className={col.toggle}>
-                        <button
-                          onClick={() =>
-                            updateItem(item.id, {
-                              pricing_mode:
-                                item.pricing_mode === "per_bf"
-                                  ? "per_lf"
-                                  : "per_bf",
-                            })
+                        <Select
+                          value={item.pricing_mode}
+                          onValueChange={(v) =>
+                            updateItem(item.id, { pricing_mode: v as LumberItem['pricing_mode'] })
                           }
-                          tabIndex={baseTab + 6}
-                          aria-label={`Pricing mode: ${item.pricing_mode === "per_bf" ? "per board foot" : "per linear foot"} — click to toggle`}
-                          className="cursor-pointer text-xs border rounded px-1.5 py-0.5
-                            hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring"
                         >
-                          {item.pricing_mode === "per_bf" ? "BF" : "LF"}
-                        </button>
+                          <SelectTrigger
+                            className="h-7 text-xs border-transparent hover:border-border focus:border-ring px-1.5"
+                            aria-label={`Pricing mode: ${item.pricing_mode}`}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="per_bf" className="text-xs">$/BF</SelectItem>
+                            <SelectItem value="per_lf" className="text-xs">$/LF</SelectItem>
+                            <SelectItem value="per_piece" className="text-xs">$/piece</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className={col.lg}>
                         <CurrencyCell
@@ -289,7 +318,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                       <div
                         className={`${col.sm} text-right text-muted-foreground text-sm`}
                       >
-                        {totalBF.toFixed(2)}
+                        {item.pricing_mode === "per_piece" ? "—" : totalBF.toFixed(2)}
                       </div>
                       <div className={`${col.last} text-sm`}>
                         {item.is_reclaimed
@@ -319,7 +348,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                     <button
                       onClick={handleUndo}
                       aria-label="Undo delete"
-                      className="font-medium underline hover:text-foreground focus:outline-none"
+                      className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none"
                     >
                       Undo
                     </button>

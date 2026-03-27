@@ -20,11 +20,14 @@ interface ProjectShellProps {
 }
 
 export function ProjectShell({ projectId, userId }: ProjectShellProps) {
-  const { loadProject, project, isLoading, setProject } = useProjectStore();
+  const { loadProject, project, isLoading, setProject, passSavingsToCustomer, setPassSavingsToCustomer } = useProjectStore();
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  const [dimL, setDimL] = useState('');
-  const [dimW, setDimW] = useState('');
+  // Surface area inputs: L ft+in, W ft+in
+  const [dimLft, setDimLft] = useState('');
+  const [dimLin, setDimLin] = useState('');
+  const [dimWft, setDimWft] = useState('');
+  const [dimWin, setDimWin] = useState('');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -32,8 +35,10 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   }, [projectId, loadProject]);
 
   useEffect(() => {
-    // Initialise dimension inputs from saved sqft (can't reverse-calculate L×W, so leave blank if already set)
-    if (!project?.surface_area_sqft) { setDimL(''); setDimW(''); }
+    // Reset dimension inputs when project changes (can't reverse-calculate L×W)
+    if (!project?.surface_area_sqft) {
+      setDimLft(''); setDimLin(''); setDimWft(''); setDimWin('');
+    }
   }, [project?.id]);
 
   async function handleShareToggle() {
@@ -49,10 +54,10 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
     }
   }
 
-  async function handleSurfaceSave(l: string, w: string) {
+  async function handleSurfaceSave(lft: string, lin: string, wft: string, win: string) {
     if (!project) return;
-    const lVal = parseFloat(l);
-    const wVal = parseFloat(w);
+    const lVal = (parseFloat(lft) || 0) + (parseFloat(lin) || 0) / 12;
+    const wVal = (parseFloat(wft) || 0) + (parseFloat(win) || 0) / 12;
     const parsed = lVal > 0 && wVal > 0 ? parseFloat((lVal * wVal).toFixed(2)) : null;
     const supabase = createClient();
     const { error } = await supabase
@@ -85,6 +90,11 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
     setEditingName(false);
   }
 
+  // Compute displayed sqft from current inputs
+  const lVal = (parseFloat(dimLft) || 0) + (parseFloat(dimLin) || 0) / 12;
+  const wVal = (parseFloat(dimWft) || 0) + (parseFloat(dimWin) || 0) / 12;
+  const computedSqft = lVal > 0 && wVal > 0 ? parseFloat((lVal * wVal).toFixed(2)) : null;
+
   if (isLoading) {
     return (
       <div className="py-16 text-center text-muted-foreground">
@@ -111,6 +121,7 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
               type="text"
               value={nameDraft}
               onChange={(e) => setNameDraft(e.target.value)}
+              onFocus={(e) => e.target.select()}
               onBlur={handleNameSave}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleNameSave();
@@ -150,38 +161,78 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
               </button>
             </div>
           )}
-          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-            <span>Surface:</span>
+          {/* Surface area — ft+in inputs */}
+          <div className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground mt-1">
+            <span>Price/sq ft — enter dimensions:</span>
             <input
               type="number"
               inputMode="decimal"
-              value={dimL}
+              value={dimLft}
               placeholder="L"
-              onChange={(e) => setDimL(e.target.value)}
-              onBlur={(e) => handleSurfaceSave(e.target.value, dimW)}
+              onChange={(e) => setDimLft(e.target.value)}
+              onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-              className="w-14 bg-transparent border-b border-transparent hover:border-border
-                         focus:border-ring focus:outline-none text-sm text-foreground"
-            />
-            <span>×</span>
-            <input
-              type="number"
-              inputMode="decimal"
-              value={dimW}
-              placeholder="W"
-              onChange={(e) => setDimW(e.target.value)}
-              onBlur={(e) => handleSurfaceSave(dimL, e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-              className="w-14 bg-transparent border-b border-transparent hover:border-border
+              className="w-12 bg-transparent border-b border-transparent hover:border-border
                          focus:border-ring focus:outline-none text-sm text-foreground"
             />
             <span>ft</span>
-            {project?.surface_area_sqft && project.surface_area_sqft > 0 && (
+            <input
+              type="number"
+              inputMode="decimal"
+              value={dimLin}
+              placeholder="0"
+              onChange={(e) => setDimLin(e.target.value)}
+              onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+              className="w-10 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground"
+            />
+            <span>in ×</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              value={dimWft}
+              placeholder="W"
+              onChange={(e) => setDimWft(e.target.value)}
+              onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+              className="w-12 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground"
+            />
+            <span>ft</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              value={dimWin}
+              placeholder="0"
+              onChange={(e) => setDimWin(e.target.value)}
+              onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+              className="w-10 bg-transparent border-b border-transparent hover:border-border
+                         focus:border-ring focus:outline-none text-sm text-foreground"
+            />
+            <span>in</span>
+            {computedSqft !== null && (
               <span className="text-xs text-muted-foreground">
-                = {project.surface_area_sqft} sq ft
+                = {computedSqft} sq ft
+              </span>
+            )}
+            {!computedSqft && project?.surface_area_sqft && project.surface_area_sqft > 0 && (
+              <span className="text-xs text-muted-foreground">
+                = {project.surface_area_sqft} sq ft (saved)
               </span>
             )}
           </div>
+          {/* Reclaimed savings toggle */}
+          <label className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={passSavingsToCustomer}
+              onChange={(e) => setPassSavingsToCustomer(e.target.checked)}
+              className="rounded"
+            />
+            Pass reclaimed savings to customer
+          </label>
         </div>
         <div className="flex items-center gap-3">
           <button

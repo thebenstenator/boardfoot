@@ -1,4 +1,4 @@
-import { calculateBoardFeet, lumberLineCost, convertLFtoBFPrice, calculateBoardFeetFlexible } from './boardFeet'
+import { lumberLineCost, convertLFtoBFPrice, calculateBoardFeetFlexible } from './boardFeet'
 import type { LengthUnit } from '@/types/bom'
 import { applyWasteFactor, wasteAdjustedCost } from './wasteFactor'
 import { finishLineCost } from './finishFraction'
@@ -22,23 +22,43 @@ function calcLumberTotals(
   let boardFeetNet = 0
   let netCost = 0
   let reclaimedSavings = 0
+  // Separate bucket for per_piece items (not waste-adjusted)
+  let pieceCost = 0
+  let reclaimedPieceSavings = 0
 
   for (const item of items) {
-    // Determine effective waste factor for this item
+    if (item.pricing_mode === 'per_piece') {
+      // per_piece: cost = price_per_unit * quantity, NOT waste-adjusted
+      const lineCost = item.price_per_unit * item.quantity
+      if (item.is_reclaimed) {
+        reclaimedPieceSavings += lineCost
+      } else {
+        pieceCost += lineCost
+      }
+      // BF still tracked for informational purposes
+      const bfPerPiece = calculateBoardFeetFlexible(
+        item.thickness_in,
+        item.width_in,
+        item.length_ft,
+        (item.length_unit ?? 'ft') as LengthUnit
+      )
+      boardFeetNet += bfPerPiece * item.quantity
+      continue
+    }
+
+    // per_bf / per_lf: existing BF-based, waste-adjusted behavior
     const wasteFactor =
       item.waste_override !== null ? item.waste_override : projectWasteFactor
 
-    // Calculate board feet for one piece
- const bfPerPiece = calculateBoardFeetFlexible(
-  item.thickness_in,
-  item.width_in,
-  item.length_ft,
-  (item.length_unit ?? 'ft') as LengthUnit
-)
+    const bfPerPiece = calculateBoardFeetFlexible(
+      item.thickness_in,
+      item.width_in,
+      item.length_ft,
+      (item.length_unit ?? 'ft') as LengthUnit
+    )
     const bfTotal = bfPerPiece * item.quantity
     boardFeetNet += bfTotal
 
-    // Resolve price per BF regardless of pricing mode
     const pricePerBF =
       item.pricing_mode === 'per_lf'
         ? convertLFtoBFPrice(item.price_per_unit, item.thickness_in, item.width_in)
@@ -51,17 +71,19 @@ function calcLumberTotals(
     }
   }
 
-  const adjustedCost = wasteAdjustedCost(netCost, projectWasteFactor)
-  const wasteCost = adjustedCost - netCost
+  // Waste-adjust only the BF-based portion, then add piece cost directly
+  const adjustedBFCost = wasteAdjustedCost(netCost, projectWasteFactor)
+  const adjustedCost = adjustedBFCost + pieceCost
+  const wasteCost = adjustedBFCost - netCost
   const boardFeetAdjusted = applyWasteFactor(boardFeetNet, projectWasteFactor)
 
   return {
-    netCost,
+    netCost: netCost + pieceCost,
     wasteCost,
     adjustedCost,
     boardFeetNet,
     boardFeetAdjusted,
-    reclaimedSavings,
+    reclaimedSavings: reclaimedSavings + reclaimedPieceSavings,
   }
 }
 
@@ -103,7 +125,8 @@ export function calculateProjectTotals(
   finishItems: FinishItem[],
   labor: ProjectLabor | null,
   profile: UserProfile,
-  projectWasteFactor: number
+  projectWasteFactor: number,
+  passSavingsToCustomer: boolean = false
 ): ProjectTotals {
   const lumber = calcLumberTotals(lumberItems, projectWasteFactor)
   const hardwareTotal = calcHardwareTotal(hardwareItems)
@@ -116,8 +139,15 @@ export function calculateProjectTotals(
   const withTax = grandTotal * (1 + profile.tax_rate)
 
   const targetMargin = labor?.target_margin ?? 0.30
-  const suggestedRetail = grandTotal / (1 - targetMargin)
-  const etsyListingPrice = suggestedEtsyPrice(grandTotal, targetMargin)
+
+  // When NOT passing savings to customer, price as if reclaimed was bought at market rate
+  // so the woodworker keeps the savings (retail is not reduced by reclaimed discount).
+  const baseForRetail = passSavingsToCustomer
+    ? grandTotal
+    : grandTotal + lumber.reclaimedSavings
+
+  const suggestedRetail = baseForRetail / (1 - targetMargin)
+  const etsyListingPrice = suggestedEtsyPrice(baseForRetail, targetMargin)
 
   return {
     lumber,

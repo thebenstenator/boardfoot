@@ -33,6 +33,9 @@ interface ProjectStore {
   labor: ProjectLabor | null
   profile: UserProfile
 
+  // UI-only settings (not persisted to DB)
+  passSavingsToCustomer: boolean
+
   // Computed
   totals: ProjectTotals
 
@@ -43,6 +46,7 @@ interface ProjectStore {
   // Actions
   setProject: (project: Project) => void
   setProfile: (profile: UserProfile) => void
+  setPassSavingsToCustomer: (val: boolean) => void
 
   addLumberItem: (item: LumberItem) => void
   updateLumberItem: (id: string, patch: Partial<LumberItem>) => void
@@ -68,7 +72,8 @@ function computeTotals(
   finishItems: FinishItem[],
   labor: ProjectLabor | null,
   profile: UserProfile,
-  wasteFactor: number
+  wasteFactor: number,
+  passSavingsToCustomer: boolean = false
 ): ProjectTotals {
   return calculateProjectTotals(
     lumberItems,
@@ -76,7 +81,8 @@ function computeTotals(
     finishItems,
     labor,
     profile,
-    wasteFactor
+    wasteFactor,
+    passSavingsToCustomer
   )
 }
 
@@ -89,6 +95,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   finishItems: [],
   labor: null,
   profile: DEFAULT_PROFILE,
+  passSavingsToCustomer: false,
   totals: EMPTY_TOTALS,
   isLoading: false,
   isSaving: false,
@@ -103,7 +110,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         state.labor,
         state.profile,
-        project.waste_factor
+        project.waste_factor,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -118,7 +126,24 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         state.labor,
         profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
+      ),
+    })
+  },
+
+  setPassSavingsToCustomer: (val) => {
+    const state = get()
+    set({
+      passSavingsToCustomer: val,
+      totals: computeTotals(
+        state.lumberItems,
+        state.hardwareItems,
+        state.finishItems,
+        state.labor,
+        state.profile,
+        state.project?.waste_factor ?? 0.15,
+        val
       ),
     })
   },
@@ -134,7 +159,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -152,7 +178,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -168,7 +195,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -184,7 +212,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -202,7 +231,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -218,7 +248,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -234,7 +265,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -252,7 +284,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -268,7 +301,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         finishItems,
         state.labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -283,7 +317,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.finishItems,
         labor,
         state.profile,
-        state.project?.waste_factor ?? 0.15
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer
       ),
     })
   },
@@ -329,7 +364,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         resolvedFinish,
         resolvedLabor,
         state.profile,
-        project.waste_factor
+        project.waste_factor,
+        state.passSavingsToCustomer
       ),
       isLoading: false,
     })

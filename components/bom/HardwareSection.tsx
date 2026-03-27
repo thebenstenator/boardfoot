@@ -169,7 +169,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                   <button
                     onClick={handleUndo}
                     aria-label="Undo delete"
-                    className="font-medium underline hover:text-foreground focus:outline-none"
+                    className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none"
                   >
                     Undo
                   </button>
