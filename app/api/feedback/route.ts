@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   const { error } = await resend.emails.send({
     from,
-    to: 'boardfootfeedback@gmail.com',
+    to: process.env.FEEDBACK_TO_EMAIL ?? 'thebenstenator@gmail.com',
     subject: `BoardFoot feedback from ${profile?.display_name ?? user.email}`,
     text: [
       `From: ${profile?.display_name ?? '(no name)'} <${user.email}>`,
