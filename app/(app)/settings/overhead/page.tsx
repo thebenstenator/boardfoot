@@ -46,8 +46,8 @@ export default function OverheadPage() {
       .update(updates)
       .eq("id", user.id);
 
-    if (!error && profile) {
-      setProfile({ ...profile, ...updates } as UserProfile);
+    if (!error) {
+      if (profile) setProfile({ ...profile, ...updates } as UserProfile);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     }
