@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { FeedbackButton } from "@/components/shared/FeedbackButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +74,7 @@ export default async function AppLayout({
             </Link>
           </div>
 
+          <FeedbackButton userEmail={user.email ?? ''} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="cursor-pointer w-9 h-9 rounded-full bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-ring">
