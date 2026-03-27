@@ -83,7 +83,7 @@ export async function POST(request: Request) {
       ...rest,
       project_id: newProject.id,
     }))
-    insertPromises.push(supabase.from('lumber_items').insert(copies))
+    insertPromises.push(Promise.resolve(supabase.from('lumber_items').insert(copies)))
   }
 
   if (hardwareItems && hardwareItems.length > 0) {
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       ...rest,
       project_id: newProject.id,
     }))
-    insertPromises.push(supabase.from('hardware_items').insert(copies))
+    insertPromises.push(Promise.resolve(supabase.from('hardware_items').insert(copies)))
   }
 
   if (finishItems && finishItems.length > 0) {
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
       ...rest,
       project_id: newProject.id,
     }))
-    insertPromises.push(supabase.from('finish_items').insert(copies))
+    insertPromises.push(Promise.resolve(supabase.from('finish_items').insert(copies)))
   }
 
   await Promise.all(insertPromises)
