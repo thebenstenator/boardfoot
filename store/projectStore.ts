@@ -9,6 +9,7 @@ import type {
   ProjectLabor,
   UserProfile,
   ProjectTotals,
+  CutPart,
 } from '@/types/bom'
 
 // Default profile values used for calculations before profile loads
@@ -30,6 +31,7 @@ interface ProjectStore {
   lumberItems: LumberItem[]
   hardwareItems: HardwareItem[]
   finishItems: FinishItem[]
+  cutParts: CutPart[]
   labor: ProjectLabor | null
   profile: UserProfile
 
@@ -59,6 +61,11 @@ interface ProjectStore {
   addFinishItem: (item: FinishItem) => void
   updateFinishItem: (id: string, patch: Partial<FinishItem>) => void
   removeFinishItem: (id: string) => void
+
+  addCutPart: (item: CutPart) => void
+  updateCutPart: (id: string, patch: Partial<CutPart>) => void
+  removeCutPart: (id: string) => void
+  setCutParts: (items: CutPart[]) => void
 
   setLabor: (labor: ProjectLabor) => void
 
@@ -93,6 +100,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   lumberItems: [],
   hardwareItems: [],
   finishItems: [],
+  cutParts: [],
   labor: null,
   profile: DEFAULT_PROFILE,
   passSavingsToCustomer: false,
@@ -307,6 +315,29 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     })
   },
 
+  addCutPart: (item) => {
+    const state = get()
+    set({ cutParts: [...state.cutParts, item] })
+  },
+
+  updateCutPart: (id, patch) => {
+    const state = get()
+    set({
+      cutParts: state.cutParts.map((item) =>
+        item.id === id ? { ...item, ...patch } : item
+      ),
+    })
+  },
+
+  removeCutPart: (id) => {
+    const state = get()
+    set({ cutParts: state.cutParts.filter((item) => item.id !== id) })
+  },
+
+  setCutParts: (items) => {
+    set({ cutParts: items })
+  },
+
   setLabor: (labor) => {
     const state = get()
     set({
@@ -332,12 +363,14 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       { data: lumberItems },
       { data: hardwareItems },
       { data: finishItems },
+      { data: cutParts },
       { data: labor },
     ] = await Promise.all([
       supabase.from('projects').select('*').eq('id', projectId).single(),
       supabase.from('lumber_items').select('*').eq('project_id', projectId).order('sort_order'),
       supabase.from('hardware_items').select('*').eq('project_id', projectId).order('sort_order'),
       supabase.from('finish_items').select('*').eq('project_id', projectId).order('sort_order'),
+      supabase.from('cut_parts').select('*').eq('project_id', projectId).order('sort_order'),
       supabase.from('project_labor').select('*').eq('project_id', projectId).maybeSingle(),
     ])
 
@@ -350,6 +383,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const resolvedLumber = (lumberItems ?? []) as LumberItem[]
     const resolvedHardware = (hardwareItems ?? []) as HardwareItem[]
     const resolvedFinish = (finishItems ?? []) as FinishItem[]
+    const resolvedCutParts = (cutParts ?? []) as CutPart[]
     const resolvedLabor = (labor ?? null) as ProjectLabor | null
 
     set({
@@ -357,6 +391,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       lumberItems: resolvedLumber,
       hardwareItems: resolvedHardware,
       finishItems: resolvedFinish,
+      cutParts: resolvedCutParts,
       labor: resolvedLabor,
       totals: computeTotals(
         resolvedLumber,

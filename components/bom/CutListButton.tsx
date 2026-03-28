@@ -15,7 +15,7 @@ interface CutListButtonProps {
   projectId: string
 }
 
-export function CutListButton({ projectId: _ }: CutListButtonProps) {
+export function CutListButton({ projectId }: CutListButtonProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -31,13 +31,13 @@ export function CutListButton({ projectId: _ }: CutListButtonProps) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Cut List Optimizer</DialogTitle>
+            <DialogTitle>Cut List</DialogTitle>
             <DialogDescription>
-              Optimized layout for cutting your lumber from stock boards.
+              Define the cut parts for this project and visualize the stock layout.
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto p-6">
-            <CutListView />
+            <CutListView projectId={projectId} />
           </div>
         </DialogContent>
       </Dialog>

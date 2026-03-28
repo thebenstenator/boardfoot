@@ -102,6 +102,21 @@ export interface Project {
   updated_at: string
 }
 
+// ─── Cut Parts ────────────────────────────────────────────────────────────────
+
+export interface CutPart {
+  id: string
+  project_id: string
+  label: string
+  thickness_in: number
+  width_in: number
+  length_in: number
+  quantity: number
+  notes: string
+  sort_order: number
+  created_at: string
+}
+
 // ─── Computed Totals ──────────────────────────────────────────────────────────
 
 export interface LumberTotals {

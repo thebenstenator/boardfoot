@@ -6,6 +6,7 @@ import type {
   HardwareItem,
   FinishItem,
   ProjectLabor,
+  CutPart,
 } from "@/types/bom";
 
 export function useLumberItems(projectId: string) {
@@ -321,4 +322,54 @@ export function useProjectLabor(projectId: string) {
   );
 
   return { labor, updateLabor };
+}
+
+export function useCutParts(projectId: string) {
+  const { cutParts, addCutPart, updateCutPart, removeCutPart } = useProjectStore();
+  const supabase = createClient();
+  const pendingDeletes = useRef<Map<string, { item: CutPart; timeout: ReturnType<typeof setTimeout> }>>(new Map());
+
+  const addItem = useCallback(async () => {
+    const newItem = {
+      project_id: projectId,
+      label: "",
+      thickness_in: 0.75,
+      width_in: 3.5,
+      length_in: 24,
+      quantity: 1,
+      notes: "",
+      sort_order: cutParts.length,
+    };
+    const { data, error } = await supabase.from("cut_parts").insert(newItem).select().single();
+    if (error) { console.error("Failed to add cut part:", error); return; }
+    addCutPart(data as CutPart);
+  }, [projectId, cutParts.length, supabase, addCutPart]);
+
+  const updateItem = useCallback(async (id: string, patch: Partial<CutPart>) => {
+    updateCutPart(id, patch);
+    const { error } = await supabase.from("cut_parts").update(patch).eq("id", id);
+    if (error) console.error("Failed to update cut part:", error);
+  }, [supabase, updateCutPart]);
+
+  const removeItem = useCallback((id: string): CutPart | null => {
+    const item = cutParts.find((i) => i.id === id) ?? null;
+    if (!item) return null;
+    removeCutPart(id);
+    const timeout = setTimeout(async () => {
+      await supabase.from("cut_parts").delete().eq("id", id);
+      pendingDeletes.current.delete(id);
+    }, 5000);
+    pendingDeletes.current.set(id, { item, timeout });
+    return item;
+  }, [cutParts, removeCutPart, supabase]);
+
+  const undoRemove = useCallback((id: string) => {
+    const pending = pendingDeletes.current.get(id);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    pendingDeletes.current.delete(id);
+    addCutPart(pending.item);
+  }, [addCutPart]);
+
+  return { items: cutParts, addItem, updateItem, removeItem, undoRemove };
 }

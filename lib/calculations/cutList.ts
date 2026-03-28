@@ -1,13 +1,12 @@
-import type { LumberItem } from '@/types/bom'
+import type { CutPart } from '@/types/bom'
 
 export interface CutPiece {
-  itemId: string        // source LumberItem.id
-  species: string
+  itemId: string        // source CutPart.id
+  label: string         // part label for display on board diagram
   thickness_in: number
   width_in: number
   lengthFt: number
-  label: string         // e.g. "Black Walnut"
-  colorIndex: number    // index into a color palette, assigned per species+T+W group
+  colorIndex: number    // index into a color palette, assigned per T+W group
 }
 
 export interface BoardCut {
@@ -24,8 +23,8 @@ export interface StockBoard {
 }
 
 export interface CutGroup {
-  key: string           // e.g. "Black Walnut_1_6"
-  species: string
+  key: string           // e.g. "0.75_3.5"
+  dimensionLabel: string // e.g. "0.75\" × 3.5\""
   thickness_in: number
   width_in: number
   boards: StockBoard[]
@@ -36,40 +35,35 @@ export interface CutGroup {
 }
 
 export function buildCutList(
-  lumberItems: LumberItem[],
+  parts: CutPart[],
   stockLengthFt: number,  // e.g. 8
   kerfIn: number          // e.g. 0.125 (1/8")
 ): CutGroup[] {
   const kerfFt = kerfIn / 12
 
-  // Step 1: Filter out reclaimed items
-  const items = lumberItems.filter((item) => !item.is_reclaimed)
-
-  // Step 2: Expand each item into quantity individual CutPiece objects
+  // Expand each CutPart into quantity individual CutPiece objects
   const allPieces: CutPiece[] = []
-  for (const item of items) {
-    const lengthFt =
-      item.length_unit === 'in' ? item.length_ft / 12 : item.length_ft
-    for (let i = 0; i < item.quantity; i++) {
+  for (const part of parts) {
+    const lengthFt = part.length_in / 12
+    for (let i = 0; i < part.quantity; i++) {
       allPieces.push({
-        itemId: item.id,
-        species: item.species,
-        thickness_in: item.thickness_in,
-        width_in: item.width_in,
+        itemId: part.id,
+        label: part.label,
+        thickness_in: part.thickness_in,
+        width_in: part.width_in,
         lengthFt,
-        label: item.species,
         colorIndex: 0, // assigned below
       })
     }
   }
 
-  // Step 3: Group pieces by species + thickness + width, assign colorIndex
+  // Group pieces by thickness + width, assign colorIndex
   const groupMap = new Map<string, CutPiece[]>()
   let colorCounter = 0
   const colorByKey = new Map<string, number>()
 
   for (const piece of allPieces) {
-    const key = `${piece.species}_${piece.thickness_in}_${piece.width_in}`
+    const key = `${piece.thickness_in}_${piece.width_in}`
     if (!colorByKey.has(key)) {
       colorByKey.set(key, colorCounter++)
     }
@@ -85,7 +79,7 @@ export function buildCutList(
   for (const [key, pieces] of groupMap) {
     const first = pieces[0]
 
-    // Step 4: Separate pieces that exceed stockLengthFt
+    // Separate pieces that exceed stockLengthFt
     const tooLong: CutPiece[] = []
     const fittable: CutPiece[] = []
     for (const piece of pieces) {
@@ -96,7 +90,7 @@ export function buildCutList(
       }
     }
 
-    // Step 5: First Fit Decreasing — sort remaining pieces by lengthFt descending
+    // First Fit Decreasing — sort remaining pieces by lengthFt descending
     fittable.sort((a, b) => b.lengthFt - a.lengthFt)
 
     const boards: StockBoard[] = []
@@ -133,15 +127,17 @@ export function buildCutList(
       }
     }
 
-    // Step 6: Compute totals
+    // Compute totals
     const totalPieceFt = fittable.reduce((sum, p) => sum + p.lengthFt, 0)
     const totalStockFt = boards.length * stockLengthFt
     const wastePct =
       totalStockFt > 0 ? (totalStockFt - totalPieceFt) / totalStockFt : 0
 
+    const dimensionLabel = `${first.thickness_in}" × ${first.width_in}"`
+
     groups.push({
       key,
-      species: first.species,
+      dimensionLabel,
       thickness_in: first.thickness_in,
       width_in: first.width_in,
       boards,
@@ -152,9 +148,8 @@ export function buildCutList(
     })
   }
 
-  // Step 7: Sort by species, then thickness, then width
+  // Sort by thickness, then width
   groups.sort((a, b) => {
-    if (a.species !== b.species) return a.species.localeCompare(b.species)
     if (a.thickness_in !== b.thickness_in) return a.thickness_in - b.thickness_in
     return a.width_in - b.width_in
   })
