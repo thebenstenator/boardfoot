@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import type { LumberItem, HardwareItem, FinishItem } from "@/types/bom";
 
 interface GeneratedBom {
+  projectName: string;
   lumberItems: Array<{
     species: string;
     thickness_in: number;
@@ -105,7 +106,7 @@ export function AiGenerateModal({
       if (!targetProjectId) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
-        const name = prompt.trim().slice(0, 60) || "Untitled Project";
+        const name = preview.projectName || prompt.trim().slice(0, 60) || "Untitled Project";
         const { data: newProject, error: projectError } = await supabase
           .from("projects")
           .insert({ user_id: user.id, name })

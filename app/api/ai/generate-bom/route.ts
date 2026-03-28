@@ -30,6 +30,7 @@ Consumables (finishItems) rules:
 
 Output ONLY valid JSON in this exact shape, with no markdown or explanation:
 {
+  "projectName": string (short descriptive name, 2-5 words, e.g. "Walnut Floating Shelf", "Plywood Bookshelf", "Pine Workbench"),
   "lumberItems": [{ "species": string, "thickness_in": number, "width_in": number, "length_ft": number, "quantity": number, "pricing_mode": "per_bf" | "per_lf" | "per_piece", "price_per_unit": number }],
   "hardwareItems": [{ "description": string, "quantity": number, "unit": string, "unit_cost": number }],
   "finishItems": [{ "description": string, "container_size": number, "container_cost": number, "amount_used": number, "fraction_used": number, "unit": string }]
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
 
     const jsonText = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     const parsed = JSON.parse(jsonText) as {
+      projectName: string;
       lumberItems: Array<{
         species: string;
         thickness_in: number;
@@ -126,6 +128,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
+      projectName: parsed.projectName,
       lumberItems: parsed.lumberItems,
       hardwareItems: parsed.hardwareItems,
       finishItems: parsed.finishItems,
