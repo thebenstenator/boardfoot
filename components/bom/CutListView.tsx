@@ -75,9 +75,6 @@ export function CutListView({ projectId }: CutListViewProps) {
     updateItem(id, { [field]: value } as Partial<CutPart>)
   }
 
-  const TAB_OFFSET = 200
-  const TAB_STOPS_PER_ROW = 5
-
   return (
     <div className="space-y-8">
       {/* ── Section 1: Parts List ── */}
@@ -98,66 +95,58 @@ export function CutListView({ projectId }: CutListViewProps) {
               <span className={col.delete}></span>
             </div>
 
-            {items.map((item, rowIndex) => {
-              const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET
-              return (
-                <div
-                  key={item.id}
-                  className={`${bomRow} border-b hover:bg-muted/30`}
-                >
-                  <div className={col.lg}>
-                    <DescriptionCell
-                      value={item.label}
-                      onChange={(v) => handleUpdate(item.id, 'label', v)}
-                      tabIndex={baseTab}
-                    />
-                  </div>
-                  <div className={col.sm}>
-                    <EditableCell
-                      value={item.thickness_in}
-                      onChange={(v) => handleUpdate(item.id, 'thickness_in', v)}
-                      type="text"
-                      tabIndex={baseTab + 1}
-                    />
-                  </div>
-                  <div className={col.sm}>
-                    <EditableCell
-                      value={item.width_in}
-                      onChange={(v) => handleUpdate(item.id, 'width_in', v)}
-                      type="text"
-                      tabIndex={baseTab + 2}
-                    />
-                  </div>
-                  <div className={col.sm}>
-                    <EditableCell
-                      value={item.length_in}
-                      onChange={(v) => handleUpdate(item.id, 'length_in', v)}
-                      type="text"
-                      tabIndex={baseTab + 3}
-                    />
-                  </div>
-                  <div className={col.sm}>
-                    <EditableCell
-                      value={item.quantity}
-                      onChange={(v) => handleUpdate(item.id, 'quantity', v)}
-                      type="text"
-                      tabIndex={baseTab + 4}
-                    />
-                  </div>
-                  <div className={col.delete}>
-                    <button
-                      onClick={() => handleRemove(item.id, item.label || 'part')}
-                      tabIndex={-1}
-                      aria-label={`Delete ${item.label || 'part'}`}
-                      className="cursor-pointer text-muted-foreground hover:text-destructive
-                        text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
-                    >
-                      ✕
-                    </button>
-                  </div>
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className={`${bomRow} border-b hover:bg-muted/30`}
+              >
+                <div className={col.lg}>
+                  <DescriptionCell
+                    value={item.label}
+                    onChange={(v) => handleUpdate(item.id, 'label', v)}
+                  />
                 </div>
-              )
-            })}
+                <div className={col.sm}>
+                  <EditableCell
+                    value={item.thickness_in}
+                    onChange={(v) => handleUpdate(item.id, 'thickness_in', v)}
+                    type="text"
+                  />
+                </div>
+                <div className={col.sm}>
+                  <EditableCell
+                    value={item.width_in}
+                    onChange={(v) => handleUpdate(item.id, 'width_in', v)}
+                    type="text"
+                  />
+                </div>
+                <div className={col.sm}>
+                  <EditableCell
+                    value={item.length_in}
+                    onChange={(v) => handleUpdate(item.id, 'length_in', v)}
+                    type="text"
+                  />
+                </div>
+                <div className={col.sm}>
+                  <EditableCell
+                    value={item.quantity}
+                    onChange={(v) => handleUpdate(item.id, 'quantity', v)}
+                    type="text"
+                  />
+                </div>
+                <div className={col.delete}>
+                  <button
+                    onClick={() => handleRemove(item.id, item.label || 'part')}
+                    tabIndex={-1}
+                    aria-label={`Delete ${item.label || 'part'}`}
+                    className="cursor-pointer text-muted-foreground hover:text-destructive
+                      text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ))}
 
             {/* Ghost row — click to add */}
             <div
@@ -214,15 +203,19 @@ export function CutListView({ projectId }: CutListViewProps) {
             </div>
 
             {groups.map((group) => {
+              const isSheet = group.width_in >= 24
               const stockVal = groupStockLengths[group.key] ?? '8'
+              const stockFt = getStockLength(group.key)
+              const stockLabel = isSheet ? 'Sheet length' : 'Stock length'
+              const unitLabel = isSheet ? 'sheet' : 'board'
+
               return (
                 <div key={group.key} className="space-y-3">
-                  {/* Group header with per-group stock length */}
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <h3 className="font-semibold text-sm">{group.dimensionLabel}</h3>
                       <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        Stock:
+                        {stockLabel}:
                         <input
                           type="text"
                           inputMode="decimal"
@@ -236,10 +229,16 @@ export function CutListView({ projectId }: CutListViewProps) {
                       </label>
                     </div>
                     <span className="text-xs text-muted-foreground shrink-0">
-                      {group.boards.length} board{group.boards.length !== 1 ? 's' : ''}{' '}
+                      {group.boards.length} {unitLabel}{group.boards.length !== 1 ? 's' : ''}{' '}
                       · {Math.round(group.wastePct * 100)}% waste
                     </span>
                   </div>
+
+                  {isSheet && (
+                    <p className="text-xs text-muted-foreground">
+                      Sheet goods shown as 1D cuts along the length. Set stock length to your sheet size (e.g. 8 ft for a 4×8 sheet).
+                    </p>
+                  )}
 
                   {group.tooLong.length > 0 && (
                     <p className="text-xs text-destructive">
@@ -248,43 +247,42 @@ export function CutListView({ projectId }: CutListViewProps) {
                     </p>
                   )}
 
-                  {group.boards.map((board) => {
-                    const stockFt = getStockLength(group.key)
-                    return (
-                      <div key={board.boardIndex} className="space-y-1">
-                        <span className="text-xs text-muted-foreground">Board {board.boardIndex}</span>
-                        <div className="relative h-10 w-full rounded overflow-hidden bg-muted flex">
-                          {board.cuts.map((cut, i) => {
-                            const widthPct = (cut.piece.lengthFt / stockFt) * 100
-                            const color = COLORS[cut.piece.colorIndex % COLORS.length]
-                            const lengthIn = (cut.piece.lengthFt * 12).toFixed(1)
-                            return (
-                              <div
-                                key={i}
-                                className={`${color} h-full flex items-center justify-center overflow-hidden shrink-0`}
-                                style={{ width: `${widthPct}%` }}
-                                title={`${cut.piece.label} — ${lengthIn}"`}
-                              >
-                                <span className="text-[10px] font-medium px-1 truncate text-white">
-                                  {cut.piece.label ? `${cut.piece.label} — ` : ''}{lengthIn}&quot;
-                                </span>
-                              </div>
-                            )
-                          })}
-                          {board.wasteFt > 0 && (
+                  {group.boards.map((board) => (
+                    <div key={board.boardIndex} className="space-y-1">
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {unitLabel} {board.boardIndex}
+                      </span>
+                      <div className="relative h-10 w-full rounded overflow-hidden bg-muted flex">
+                        {board.cuts.map((cut, i) => {
+                          const widthPct = (cut.piece.lengthFt / stockFt) * 100
+                          const color = COLORS[cut.piece.colorIndex % COLORS.length]
+                          const lengthIn = (cut.piece.lengthFt * 12).toFixed(1)
+                          return (
                             <div
-                              className="h-full bg-muted-foreground/20 flex items-center justify-center shrink-0"
-                              style={{ width: `${(board.wasteFt / stockFt) * 100}%` }}
+                              key={i}
+                              className={`${color} h-full flex items-center justify-center overflow-hidden shrink-0`}
+                              style={{ width: `${widthPct}%` }}
+                              title={`${cut.piece.label} — ${lengthIn}"`}
                             >
-                              <span className="text-[10px] text-muted-foreground">
-                                {(board.wasteFt * 12).toFixed(1)}&quot; waste
+                              <span className="text-[10px] font-medium px-1 truncate text-white">
+                                {cut.piece.label ? `${cut.piece.label} — ` : ''}{lengthIn}&quot;
                               </span>
                             </div>
-                          )}
-                        </div>
+                          )
+                        })}
+                        {board.wasteFt > 0 && (
+                          <div
+                            className="h-full bg-muted-foreground/20 flex items-center justify-center shrink-0"
+                            style={{ width: `${(board.wasteFt / stockFt) * 100}%` }}
+                          >
+                            <span className="text-[10px] text-muted-foreground">
+                              {(board.wasteFt * 12).toFixed(1)}&quot; waste
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )
-                  })}
+                    </div>
+                  ))}
                 </div>
               )
             })}
