@@ -104,12 +104,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
         </Button>
       </div>
 
-      {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-4 text-center">
-          No consumables added yet. Click "+ Add consumable" to start.
-        </p>
-      ) : (
-        <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
+      <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
           <div className="min-w-[500px] sm:min-w-0">
             <div>
               <div className={bomHeader}>
@@ -215,6 +210,19 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                 </div>
               )}
 
+              {/* Ghost row — click to add */}
+              <div
+                onClick={addItem}
+                className="flex items-center w-full gap-3 py-2 border-b border-dashed
+                  text-sm text-muted-foreground/40 hover:text-muted-foreground/70
+                  hover:bg-muted/20 cursor-pointer select-none transition-colors"
+              >
+                <span className={col.first}>+ Add consumable</span>
+                <span className={col.lg} /><span className={col.lg} />
+                <span className={col.lg} /><span className={col.unit} />
+                <span className={col.last} /><span className={col.delete} />
+              </div>
+
               <div className="flex justify-end text-sm pt-3">
                 <span className="font-medium">
                   Consumables total: {formatCurrency(totals.finish.total)}
@@ -223,7 +231,6 @@ export function FinishSection({ projectId }: FinishSectionProps) {
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 }
