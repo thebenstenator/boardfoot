@@ -1,0 +1,4 @@
+ALTER TABLE cut_parts
+  ADD COLUMN IF NOT EXISTS lumber_item_id UUID REFERENCES lumber_items(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS stock_width_in  NUMERIC(6,3),
+  ADD COLUMN IF NOT EXISTS stock_length_in NUMERIC(8,3);

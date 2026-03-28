@@ -115,6 +115,9 @@ export interface CutPart {
   notes: string
   sort_order: number
   created_at: string
+  lumber_item_id: string | null
+  stock_width_in: number | null   // width of raw stock (e.g. 48 for plywood sheet)
+  stock_length_in: number | null  // length of raw stock (e.g. 96 for 8ft)
 }
 
 // ─── Computed Totals ──────────────────────────────────────────────────────────
