@@ -227,11 +227,14 @@ export function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between text-sm text-muted-foreground">
           <span>© 2026 BoardFoot</span>
           <div className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-foreground">
+              Privacy Policy
+            </Link>
+            <Link href="/cookie-policy" className="hover:text-foreground">
+              Cookie Policy
+            </Link>
             <Link href="/login" className="hover:text-foreground">
               Sign in
-            </Link>
-            <Link href="/signup" className="hover:text-foreground">
-              Sign up
             </Link>
           </div>
         </div>

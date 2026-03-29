@@ -153,6 +153,13 @@ export default function SignupPage() {
           Already have an account?{' '}
           <Link href="/login" className="underline hover:text-primary">Sign in</Link>
         </p>
+
+        <p className="text-center text-xs text-muted-foreground">
+          By creating an account, you agree to our{' '}
+          <Link href="/privacy" className="underline hover:text-primary">Privacy Policy</Link>
+          {' '}and{' '}
+          <Link href="/cookie-policy" className="underline hover:text-primary">Cookie Policy</Link>.
+        </p>
       </div>
     </div>
   )
