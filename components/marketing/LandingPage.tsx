@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { EmailCapture } from "@/components/marketing/EmailCapture";
 
 export function LandingPage() {
   return (
@@ -148,21 +149,23 @@ export function LandingPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Free */}
-            <div className="border rounded-lg p-6 space-y-4 bg-background">
+            <div className="border rounded-lg p-6 flex flex-col gap-4 bg-background">
               <div>
                 <p className="font-semibold text-lg">Free</p>
                 <p className="text-3xl font-bold mt-1">$0</p>
                 <p className="text-sm text-muted-foreground">forever</p>
               </div>
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-2 text-sm flex-1">
                 {[
                   "3 saved projects",
                   "Full BOM calculator",
                   "Board foot + waste math",
                   "Hardware & consumables tracking",
                   "Live cost summary",
-                  "Branded PDF export",
+                  "Cut list + stock layout optimizer",
+                  "Branded PDF & shopping list export",
                   "Species price database",
+                  "3 photo attachments per project",
                   "5 AI BOM generations",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
@@ -179,7 +182,7 @@ export function LandingPage() {
             </div>
 
             {/* Pro */}
-            <div className="border border-primary rounded-lg p-6 space-y-4 bg-background relative">
+            <div className="border border-primary rounded-lg p-6 flex flex-col gap-4 bg-background relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
                   Most popular
@@ -195,16 +198,14 @@ export function LandingPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">cancel anytime</p>
               </div>
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-2 text-sm flex-1">
                 {[
                   "Everything in Free",
                   "Unlimited projects",
                   "Unlimited AI BOM generation",
-                  "Cut list optimizer",
-                  "Clean unbranded PDF export",
+                  "Clean unbranded PDF & shopping list export",
                   "Labor & overhead tracking",
                   "Suggested retail + Etsy pricing",
-                  "Shopping list export by store",
                   "Unlimited photo attachments",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
@@ -215,7 +216,7 @@ export function LandingPage() {
               </ul>
               <Link href="/signup" className="block">
                 <Button className="w-full cursor-pointer">
-                  Get started free
+                  Upgrade to Pro
                 </Button>
               </Link>
             </div>
@@ -238,6 +239,8 @@ export function LandingPage() {
           </Button>
         </Link>
       </section>
+
+      <EmailCapture />
 
       {/* Footer */}
       <footer className="border-t">
