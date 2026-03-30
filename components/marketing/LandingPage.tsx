@@ -227,6 +227,9 @@ export function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between text-sm text-muted-foreground">
           <span>© 2026 BoardFoot</span>
           <div className="flex items-center gap-4">
+            <Link href="/terms" className="hover:text-foreground">
+              Terms
+            </Link>
             <Link href="/privacy" className="hover:text-foreground">
               Privacy Policy
             </Link>
