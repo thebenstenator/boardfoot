@@ -39,6 +39,10 @@ export async function GET(
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
+  if (project.user_id !== user.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   // Fetch profile
   const { data: profile } = await supabase
     .from("profiles")

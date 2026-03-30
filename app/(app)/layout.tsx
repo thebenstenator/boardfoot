@@ -74,7 +74,8 @@ export default async function AppLayout({
             </Link>
           </div>
 
-          <FeedbackButton userEmail={user.email ?? ''} />
+          <div className="flex items-center gap-4">
+            <FeedbackButton userEmail={user.email ?? ''} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="cursor-pointer w-9 h-9 rounded-full bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-ring">
@@ -122,6 +123,7 @@ export default async function AppLayout({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
       <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>

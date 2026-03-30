@@ -1,37 +1,39 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface FeedbackButtonProps {
-  userEmail: string
+  userEmail: string;
 }
 
 export function FeedbackButton({ userEmail }: FeedbackButtonProps) {
-  const [open, setOpen] = useState(false)
-  const [message, setMessage] = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle",
+  );
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!message.trim()) return
-    setStatus('sending')
+    e.preventDefault();
+    if (!message.trim()) return;
+    setStatus("sending");
 
-    const res = await fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
-    })
+    });
 
     if (res.ok) {
-      setStatus('sent')
-      setMessage('')
+      setStatus("sent");
+      setMessage("");
       setTimeout(() => {
-        setOpen(false)
-        setStatus('idle')
-      }, 2000)
+        setOpen(false);
+        setStatus("idle");
+      }, 2000);
     } else {
-      setStatus('error')
+      setStatus("error");
     }
   }
 
@@ -48,7 +50,9 @@ export function FeedbackButton({ userEmail }: FeedbackButtonProps) {
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setOpen(false);
+          }}
         >
           <div className="bg-background border rounded-lg shadow-lg w-full max-w-md mx-4 p-6 space-y-4">
             <div className="flex items-center justify-between">
@@ -62,12 +66,18 @@ export function FeedbackButton({ userEmail }: FeedbackButtonProps) {
               </button>
             </div>
 
-            {status === 'sent' ? (
+            {status === "sent" ? (
               <p className="text-center text-sm text-muted-foreground py-6">
                 Thanks for the feedback!
               </p>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  I read every message personally and will do my best to respond
+                  within 48 hours. I&apos;ll try to implement all the
+                  suggestions I can. Your feedback is invaluable for developing
+                  this into a tool woodworkers actually want to use.
+                </p>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">
                     Sending as <span className="font-medium">{userEmail}</span>
@@ -84,9 +94,10 @@ export function FeedbackButton({ userEmail }: FeedbackButtonProps) {
                   />
                 </div>
 
-                {status === 'error' && (
+                {status === "error" && (
                   <p className="text-sm text-destructive">
-                    Something went wrong — try emailing boardfootfeedback@gmail.com directly.
+                    Something went wrong — try emailing
+                    boardfootfeedback@gmail.com directly.
                   </p>
                 )}
 
@@ -98,8 +109,11 @@ export function FeedbackButton({ userEmail }: FeedbackButtonProps) {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={status === 'sending' || !message.trim()}>
-                    {status === 'sending' ? 'Sending...' : 'Send feedback'}
+                  <Button
+                    type="submit"
+                    disabled={status === "sending" || !message.trim()}
+                  >
+                    {status === "sending" ? "Sending..." : "Send feedback"}
                   </Button>
                 </div>
               </form>
@@ -108,5 +122,5 @@ export function FeedbackButton({ userEmail }: FeedbackButtonProps) {
         </div>
       )}
     </>
-  )
+  );
 }

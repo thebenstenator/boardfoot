@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe/client";
-import { PRO_MONTHLY_PRICE_ID } from "@/lib/stripe/plans";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -16,45 +15,18 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("stripe_customer_id, subscription_tier")
+    .select("stripe_customer_id")
     .eq("id", user.id)
     .single();
 
-  // If already pro, redirect to portal instead
-  if (profile?.subscription_tier === "pro") {
-    return NextResponse.redirect(new URL("/api/stripe/portal", request.url), {
-      status: 303,
-    });
+  if (!profile?.stripe_customer_id) {
+    return NextResponse.json({ error: "No billing account found" }, { status: 400 });
   }
 
-  // Create or reuse Stripe customer
-  let customerId = profile?.stripe_customer_id;
-
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email,
-      metadata: { supabase_user_id: user.id },
-    });
-    customerId = customer.id;
-
-    await supabase
-      .from("profiles")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", user.id);
-  }
-
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: "subscription",
-    line_items: [
-      {
-        price: PRO_MONTHLY_PRICE_ID,
-        quantity: 1,
-      },
-    ],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=true`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgrade=cancelled`,
+  const portalSession = await stripe.billingPortal.sessions.create({
+    customer: profile.stripe_customer_id,
+    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing`,
   });
 
-  return NextResponse.redirect(session.url!, { status: 303 });
+  return NextResponse.redirect(portalSession.url, { status: 303 });
 }
