@@ -1,57 +1,74 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <nav className="border-b">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="font-bold text-lg">BoardFoot</span>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Sign in
-            </Link>
+      {/* Hero with background image */}
+      <div className="relative">
+        <Image
+          src="/hero-background.webp"
+          alt=""
+          fill
+          className="object-cover object-[center_70%]"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/60" />
+
+        {/* Nav */}
+        <nav className="relative z-10">
+          <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+            <span className="font-bold text-lg text-white">BoardFoot</span>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/login"
+                className="text-sm text-white/70 hover:text-white"
+              >
+                Sign in
+              </Link>
+              <Link href="/signup">
+                <Button size="sm" className="cursor-pointer">
+                  Get started free
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero */}
+        <section className="relative z-10 max-w-5xl mx-auto px-4 py-24 text-center space-y-6">
+          <div className="inline-block bg-white/10 text-white text-xs font-medium px-3 py-1 rounded-full border border-white/20">
+            Free to start — no credit card required
+          </div>
+          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-white">
+            Measure twice,
+            <br />
+            price once.
+          </h1>
+          <p className="text-xl text-white/70 max-w-2xl mx-auto">
+            BoardFoot is a bill of materials planner for woodworkers. Calculate
+            board feet, track hardware and consumables, and know exactly what
+            your project costs before you buy a single board.
+          </p>
+          <div className="flex items-center justify-center gap-4 pt-2">
             <Link href="/signup">
-              <Button size="sm" className="cursor-pointer">
-                Get started free
+              <Button size="lg" className="cursor-pointer">
+                Start planning for free
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button
+                size="lg"
+                variant="outline"
+                className="cursor-pointer text-white border-white/40 hover:bg-white/10 hover:text-white"
+              >
+                Sign in
               </Button>
             </Link>
           </div>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="max-w-5xl mx-auto px-4 py-24 text-center space-y-6">
-        <div className="inline-block bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full border border-primary/20">
-          Free to start — no credit card required
-        </div>
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight">
-          Measure twice,
-          <br />
-          price once.
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          BoardFoot is a bill of materials planner for woodworkers. Calculate
-          board feet, track hardware and consumables, and know exactly what your
-          project costs before you buy a single board.
-        </p>
-        <div className="flex items-center justify-center gap-4 pt-2">
-          <Link href="/signup">
-            <Button size="lg" className="cursor-pointer">
-              Start planning for free
-            </Button>
-          </Link>
-          <Link href="/login">
-            <Button size="lg" variant="outline" className="cursor-pointer">
-              Sign in
-            </Button>
-          </Link>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* Problem */}
       <section className="border-y bg-muted/30">
