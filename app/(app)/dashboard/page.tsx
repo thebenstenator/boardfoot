@@ -38,6 +38,20 @@ function DashboardContent() {
 
   async function loadProjects() {
     const supabase = createClient();
+
+    // Seed demo project for new users
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('has_seen_demo')
+        .eq('id', user.id)
+        .single();
+      if (profile && !profile.has_seen_demo) {
+        await fetch('/api/demo', { method: 'POST' });
+      }
+    }
+
     const { data } = await supabase
       .from("projects")
       .select("*")

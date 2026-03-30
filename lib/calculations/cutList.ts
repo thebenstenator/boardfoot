@@ -14,6 +14,7 @@ export interface StockGroup {
   stockWidthIn: number           // raw stock width
   stockLengthIn: number          // raw stock length
   isSheet: boolean               // stockWidthIn >= 24
+  hasRipping: boolean            // pieces narrower than stock — use 2D rip layout
   pieces: CutPiece[]             // all individual pieces (expanded by qty)
   layout: BoardLayout | SheetLayout
 }
@@ -296,8 +297,12 @@ export function buildCutList(
   for (const [key, { label, stockWidthIn, stockLengthIn, pieces }] of groupMap) {
     const isSheet = stockWidthIn >= 24
 
+    // Ripping is worthwhile when pieces are narrow enough that 2+ fit across the stock width
+    const maxPieceWidth = pieces.length > 0 ? Math.max(...pieces.map((p) => p.widthIn)) : 0
+    const hasRipping = !isSheet && pieces.length > 0 && maxPieceWidth * 2 + kerfIn <= stockWidthIn
+
     let layout: BoardLayout | SheetLayout
-    if (isSheet) {
+    if (isSheet || hasRipping) {
       layout = buildSheetLayout(pieces, stockWidthIn, stockLengthIn, kerfIn)
     } else {
       layout = buildBoardLayout(pieces, stockLengthIn, kerfIn)
@@ -309,6 +314,7 @@ export function buildCutList(
       stockWidthIn,
       stockLengthIn,
       isSheet,
+      hasRipping,
       pieces,
       layout,
     })

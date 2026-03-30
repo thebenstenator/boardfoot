@@ -13,7 +13,8 @@ Rules:
   - Use "each" for individual items (hinges, brackets, knobs, handles)
   - Use "pair" for items sold in pairs (drawer slides, hinges when paired)
   - Use "lb" for items sold by weight
-- Finishing/consumables should include: the finish coat product, primer if needed, sandpaper (list each grit separately), brushes or applicators, wood filler or putty if relevant, tack cloth
+- IMPORTANT: Wood glue, adhesives, CA glue, epoxy, and all similar bonding products belong in finishItems (consumables) — NOT hardwareItems
+- Finishing/consumables should include: the finish coat product, primer if needed, sandpaper (list each grit separately), brushes or applicators, wood filler or putty if relevant, tack cloth, wood glue or adhesive if needed
 - Prices: use typical US retail ranges for 2025
 - pricing_mode rules:
   - Use "per_piece" for sheet goods (plywood, MDF, OSB, melamine) and any material sold by the sheet or panel — price_per_unit is the cost per sheet

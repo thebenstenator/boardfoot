@@ -74,14 +74,18 @@ function BoardLayoutView({ layout }: { layout: BoardLayout }) {
 
 // ─── Sheet Layout Diagram ─────────────────────────────────────────────────────
 
-function SheetLayoutView({ layout, group }: { layout: SheetLayout; group: StockGroup }) {
-  const DIAGRAM_HEIGHT = 200
+function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLayout; group: StockGroup; boardMode?: boolean }) {
   const DIAGRAM_WIDTH = 480
+  const DIAGRAM_HEIGHT = boardMode
+    ? Math.max(48, Math.min(80, Math.round((group.stockWidthIn / group.stockLengthIn) * DIAGRAM_WIDTH * 3)))
+    : 200
 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        Strip/rip cut layout — each horizontal band is one rip width.
+        {boardMode
+          ? 'Rip cut layout — each board can yield multiple widths.'
+          : 'Strip/rip cut layout — each horizontal band is one rip width.'}
       </p>
       {layout.sheets.map((sheet) => {
         const totalWidthUsed = sheet.strips.reduce((s, st) => s + st.widthIn, 0)
@@ -89,10 +93,10 @@ function SheetLayoutView({ layout, group }: { layout: SheetLayout; group: StockG
 
         return (
           <div key={sheet.index} className="space-y-1">
-            <span className="text-xs text-muted-foreground">Sheet {sheet.index}</span>
+            <span className="text-xs text-muted-foreground">{boardMode ? 'Board' : 'Sheet'} {sheet.index}</span>
             <div
               className="relative rounded overflow-hidden border border-border bg-muted/40"
-              style={{ width: DIAGRAM_WIDTH, height: DIAGRAM_HEIGHT }}
+              style={{ width: boardMode ? '100%' : DIAGRAM_WIDTH, height: DIAGRAM_HEIGHT }}
             >
               {/* Render strips as horizontal bands */}
               {sheet.strips.map((strip, si) => {
@@ -448,7 +452,7 @@ export function CutListView({ projectId }: CutListViewProps) {
                   {group.layout.type === 'board' ? (
                     <BoardLayoutView layout={group.layout as BoardLayout} />
                   ) : (
-                    <SheetLayoutView layout={group.layout as SheetLayout} group={group} />
+                    <SheetLayoutView layout={group.layout as SheetLayout} group={group} boardMode={!group.isSheet} />
                   )}
                 </div>
               )
