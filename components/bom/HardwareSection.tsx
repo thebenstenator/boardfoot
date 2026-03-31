@@ -35,13 +35,13 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
   const { items, addItem, updateItem, removeItem, undoRemove } =
     useHardwareItems(projectId);
   const totals = useProjectStore((state) => state.totals);
-  const [undoState, setUndoState] = useState<{ id: string; label: string } | null>(null);
+  const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null);
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleRemove(id: string, label: string) {
+  function handleRemove(id: string, label: string, index: number) {
     removeItem(id);
     if (undoTimerRef[0]) clearTimeout(undoTimerRef[0]);
-    setUndoState({ id, label });
+    setUndoState({ id, label, index });
     undoTimerRef[1](setTimeout(() => setUndoState(null), 5000));
   }
 
@@ -91,6 +91,13 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                 const lineTotal = item.quantity * item.unit_cost;
 
                 return (
+                  <>
+                  {undoState?.index === rowIndex && (
+                    <div key="undo" className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
+                      <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
+                      <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
+                    </div>
+                  )}
                   <div
                     key={item.id}
                     className={`${bomRow} border-b hover:bg-muted/30`}
@@ -143,7 +150,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                     </div>
                     <div className={col.delete}>
                       <button
-                        onClick={() => handleRemove(item.id, item.description || "hardware row")}
+                        onClick={() => handleRemove(item.id, item.description || "hardware row", rowIndex)}
                         tabIndex={baseTab + 4}
                         aria-label={`Delete ${item.description || "hardware row"}`}
                         className="cursor-pointer text-muted-foreground hover:text-destructive
@@ -153,21 +160,14 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                       </button>
                     </div>
                   </div>
+                  </>
                 );
               })}
 
-              {undoState && (
-                <div className="flex items-center justify-between mt-2 px-3 py-2 rounded bg-muted text-sm">
-                  <span className="text-muted-foreground">
-                    &ldquo;{undoState.label}&rdquo; deleted
-                  </span>
-                  <button
-                    onClick={handleUndo}
-                    aria-label="Undo delete"
-                    className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none"
-                  >
-                    Undo
-                  </button>
+              {undoState?.index === items.length && (
+                <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
+                  <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
+                  <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
                 </div>
               )}
 

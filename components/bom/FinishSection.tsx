@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useFinishItems } from "@/hooks/useLineItems";
 import { useProjectStore } from "@/store/projectStore";
 import type { FinishItem } from "@/types/bom";
@@ -47,13 +47,13 @@ interface FinishSectionProps {
 export function FinishSection({ projectId }: FinishSectionProps) {
   const { items, addItem, updateItem, removeItem, undoRemove } = useFinishItems(projectId);
   const totals = useProjectStore((state) => state.totals);
-  const [undoState, setUndoState] = useState<{ id: string; label: string } | null>(null);
+  const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null);
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleRemove(id: string, label: string) {
+  function handleRemove(id: string, label: string, index: number) {
     removeItem(id);
     if (undoTimerRef[0]) clearTimeout(undoTimerRef[0]);
-    setUndoState({ id, label });
+    setUndoState({ id, label, index });
     undoTimerRef[1](setTimeout(() => setUndoState(null), 5000));
   }
 
@@ -122,8 +122,14 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                 const lineCost = item.container_cost * item.fraction_used;
 
                 return (
+                  <Fragment key={item.id}>
+                  {undoState?.index === rowIndex && (
+                    <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
+                      <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
+                      <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
+                    </div>
+                  )}
                   <div
-                    key={item.id}
                     className={`${bomRow} border-b hover:bg-muted/30`}
                   >
                     <div className={col.first} title={item.description}>
@@ -182,7 +188,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                     </div>
                     <div className={col.delete}>
                       <button
-                        onClick={() => handleRemove(item.id, item.description || "consumable row")}
+                        onClick={() => handleRemove(item.id, item.description || "consumable row", rowIndex)}
                         tabIndex={baseTab + 4}
                         aria-label={`Delete ${item.description || "consumable row"}`}
                         className="cursor-pointer text-muted-foreground hover:text-destructive
@@ -192,11 +198,12 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                       </button>
                     </div>
                   </div>
+                  </Fragment>
                 );
               })}
 
-              {undoState && (
-                <div className="flex items-center justify-between mt-2 px-3 py-2 rounded bg-muted text-sm">
+              {undoState?.index === items.length && (
+                <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
                   <span className="text-muted-foreground">
                     &ldquo;{undoState.label}&rdquo; deleted
                   </span>

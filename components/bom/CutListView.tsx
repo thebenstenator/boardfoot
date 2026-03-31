@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useCutParts } from '@/hooks/useLineItems'
 import { useProjectStore } from '@/store/projectStore'
 import { buildCutList } from '@/lib/calculations/cutList'
@@ -175,7 +175,7 @@ export function CutListView({ projectId }: CutListViewProps) {
   const { items, addItem, updateItem, removeItem, undoRemove } = useCutParts(projectId)
   const lumberItems = useProjectStore((s) => s.lumberItems)
   const [kerfIn, setKerfIn] = useState(0.125)
-  const [undoState, setUndoState] = useState<{ id: string; label: string } | null>(null)
+  const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null)
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null)
 
   const groups = useMemo(
@@ -183,10 +183,10 @@ export function CutListView({ projectId }: CutListViewProps) {
     [items, lumberItems, kerfIn]
   )
 
-  function handleRemove(id: string, label: string) {
+  function handleRemove(id: string, label: string, index: number) {
     removeItem(id)
     if (undoTimerRef[0]) clearTimeout(undoTimerRef[0])
-    setUndoState({ id, label })
+    setUndoState({ id, label, index })
     undoTimerRef[1](setTimeout(() => setUndoState(null), 5000))
   }
 
@@ -252,12 +252,18 @@ export function CutListView({ projectId }: CutListViewProps) {
               <span className={col.delete}></span>
             </div>
 
-            {items.map((item) => {
+            {items.map((item, rowIndex) => {
               const isLinked = !!item.lumber_item_id
               const dims = getStockDimsDisplay(item)
               return (
+                <Fragment key={item.id}>
+                {undoState?.index === rowIndex && (
+                  <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
+                    <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
+                    <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
+                  </div>
+                )}
                 <div
-                  key={item.id}
                   className={`${bomRow} border-b hover:bg-muted/30`}
                 >
                   {/* Stock dropdown */}
@@ -357,7 +363,7 @@ export function CutListView({ projectId }: CutListViewProps) {
                   {/* Delete */}
                   <div className={col.delete}>
                     <button
-                      onClick={() => handleRemove(item.id, item.label || 'part')}
+                      onClick={() => handleRemove(item.id, item.label || 'part', rowIndex)}
                       aria-label={`Delete ${item.label || 'part'}`}
                       className="cursor-pointer text-muted-foreground hover:text-destructive
                         text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
@@ -366,8 +372,16 @@ export function CutListView({ projectId }: CutListViewProps) {
                     </button>
                   </div>
                 </div>
+                </Fragment>
               )
             })}
+
+            {undoState?.index === items.length && (
+              <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
+                <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
+                <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
+              </div>
+            )}
 
             {/* Ghost row — click to add */}
             <div
@@ -387,20 +401,6 @@ export function CutListView({ projectId }: CutListViewProps) {
               <span className={col.delete}></span>
             </div>
 
-            {undoState && (
-              <div className="flex items-center justify-between mt-2 px-3 py-2 rounded bg-muted text-sm">
-                <span className="text-muted-foreground">
-                  &ldquo;{undoState.label}&rdquo; deleted
-                </span>
-                <button
-                  onClick={handleUndo}
-                  aria-label="Undo delete"
-                  className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none"
-                >
-                  Undo
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
