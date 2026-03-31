@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       },
     ],
     allow_promotion_codes: true,
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=true`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/stripe/success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgrade=cancelled`,
   });
 
