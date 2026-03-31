@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useProjectStore } from "@/store/projectStore";
 import {
@@ -60,6 +60,23 @@ export function AiGenerateModal({
   const [limitReached, setLimitReached] = useState(false);
   const [preview, setPreview] = useState<GeneratedBom | null>(null);
   const [applying, setApplying] = useState(false);
+  const [generationsUsed, setGenerationsUsed] = useState<number | null>(null);
+  const [isPro, setIsPro] = useState(false);
+
+  useEffect(() => {
+    if (!open) return
+    const supabase = createClient()
+    supabase
+      .from('profiles')
+      .select('ai_generations_used, subscription_tier')
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setGenerationsUsed(data.ai_generations_used ?? 0)
+          setIsPro(data.subscription_tier === 'pro')
+        }
+      })
+  }, [open])
 
   const { addLumberItem, addHardwareItem, addFinishItem, lumberItems, hardwareItems, finishItems } =
     useProjectStore();
@@ -270,6 +287,13 @@ export function AiGenerateModal({
 
               {error && (
                 <p className="text-sm text-destructive">{error}</p>
+              )}
+
+              {!isPro && generationsUsed !== null && (
+                <p className={`text-xs ${generationsUsed >= 4 ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                  {generationsUsed} of 5 free generations used
+                  {generationsUsed >= 4 && ' — upgrade to Pro for unlimited'}
+                </p>
               )}
             </div>
 
