@@ -99,6 +99,15 @@ function LoginForm() {
         Continue with Google
       </Button>
 
+      <p className="text-center text-xs text-muted-foreground">
+        By continuing, you agree to our{' '}
+        <Link href="/terms" className="underline hover:text-primary">Terms of Service</Link>
+        {', '}
+        <Link href="/privacy" className="underline hover:text-primary">Privacy Policy</Link>
+        {', and '}
+        <Link href="/cookie-policy" className="underline hover:text-primary">Cookie Policy</Link>.
+      </p>
+
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
         <Link href="/signup" className="underline hover:text-primary">
