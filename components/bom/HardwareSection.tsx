@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useHardwareItems } from "@/hooks/useLineItems";
 import { useProjectStore } from "@/store/projectStore";
 import type { HardwareItem, HardwareUnit } from "@/types/bom";
@@ -91,15 +91,14 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                 const lineTotal = item.quantity * item.unit_cost;
 
                 return (
-                  <>
+                  <Fragment key={item.id}>
                   {undoState?.index === rowIndex && (
-                    <div key="undo" className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
+                    <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
                       <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
                       <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
                     </div>
                   )}
                   <div
-                    key={item.id}
                     className={`${bomRow} border-b hover:bg-muted/30`}
                   >
                     <div className={col.first} title={item.description}>
@@ -160,7 +159,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                       </button>
                     </div>
                   </div>
-                  </>
+                  </Fragment>
                 );
               })}
 

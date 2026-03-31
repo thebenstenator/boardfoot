@@ -114,8 +114,8 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   return (
     <div className="space-y-10">
       {/* Project name + export button */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-0.5 min-w-0">
           {editingName ? (
             <input
               type="text"
@@ -162,8 +162,8 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
             </div>
           )}
           {/* Surface area — ft+in inputs */}
-          <div className="flex flex-wrap items-center gap-0.5 text-sm text-muted-foreground mt-1">
-            <span className="mr-1">Price/sq ft — enter dimensions:</span>
+          <div className="flex flex-nowrap items-center gap-1 text-sm text-muted-foreground mt-1">
+            <span className="shrink-0">$/sq ft — L:</span>
             <input
               type="text"
               inputMode="decimal"
@@ -185,9 +185,9 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
               onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
               className="w-9 bg-transparent border-b border-transparent hover:border-border
-                         focus:border-ring focus:outline-none text-sm text-foreground text-right ml-1"
+                         focus:border-ring focus:outline-none text-sm text-foreground text-right"
             />
-            <span>in ×</span>
+            <span className="shrink-0">in × W:</span>
             <input
               type="text"
               inputMode="decimal"
@@ -197,7 +197,7 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
               onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
               className="w-9 bg-transparent border-b border-transparent hover:border-border
-                         focus:border-ring focus:outline-none text-sm text-foreground text-right ml-1"
+                         focus:border-ring focus:outline-none text-sm text-foreground text-right"
             />
             <span>ft</span>
             <input
@@ -209,7 +209,7 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
               onBlur={() => handleSurfaceSave(dimLft, dimLin, dimWft, dimWin)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
               className="w-9 bg-transparent border-b border-transparent hover:border-border
-                         focus:border-ring focus:outline-none text-sm text-foreground text-right ml-1"
+                         focus:border-ring focus:outline-none text-sm text-foreground text-right"
             />
             <span>in</span>
             {computedSqft !== null && (
@@ -236,7 +236,7 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
             </label>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={handleShareToggle}
             className={`text-xs border rounded px-2 py-1 transition-colors cursor-pointer
