@@ -53,7 +53,7 @@ export default async function AppLayout({
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6">
             <Link
               href="/dashboard"
               className="font-bold text-lg hover:opacity-80 transition-opacity"
@@ -74,7 +74,7 @@ export default async function AppLayout({
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <FeedbackButton userEmail={user.email ?? ''} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
