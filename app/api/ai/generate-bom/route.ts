@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: SYSTEM_PROMPT,
       messages: [
         {
@@ -93,7 +93,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const jsonText = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    let jsonText = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    // Extract just the JSON object in case there's any surrounding text
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
+    if (jsonMatch) jsonText = jsonMatch[0]
     const parsed = JSON.parse(jsonText) as {
       projectName: string;
       lumberItems: Array<{
