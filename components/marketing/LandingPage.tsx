@@ -191,7 +191,9 @@ export function LandingPage() {
               <div>
                 <p className="font-semibold text-lg">Pro</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-3xl text-muted-foreground line-through">$9</p>
+                  <p className="text-3xl text-muted-foreground line-through">
+                    $9
+                  </p>
                   <p className="text-3xl font-bold">
                     $5
                     <span className="text-sm font-normal text-muted-foreground">
@@ -201,7 +203,10 @@ export function LandingPage() {
                 </div>
                 <p className="text-sm text-muted-foreground">cancel anytime</p>
                 <p className="text-xs text-primary font-medium mt-1">
-                  Use code <span className="font-mono font-bold">EARLYBIRD50</span> at checkout — locked in for life, first 50 only
+                  Use code{" "}
+                  <span className="font-mono font-bold">EARLYBIRD50</span> at
+                  checkout to get this discount locked in for life, first 50
+                  only
                 </p>
               </div>
               <ul className="space-y-2 text-sm flex-1">

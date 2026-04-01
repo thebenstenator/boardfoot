@@ -4,7 +4,16 @@
       "Bash(npx tsc:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:boardfoot.app)",
+      "Bash(npm install:*)",
+      "Bash(wc -l /c/Users/thebe/Projects/boardfoot/app/\\\\\\(public\\\\\\)/privacy/page.tsx /c/Users/thebe/Projects/boardfoot/app/\\\\\\(public\\\\\\)/terms/page.tsx /c/Users/thebe/Projects/boardfoot/app/\\\\\\(public\\\\\\)/cookie-policy/page.tsx)",
+      "Bash(ls -la /c/Users/thebe/Projects/boardfoot/app/\\\\\\(public\\\\\\)/)",
+      "Bash(grep -A 30 \"export async function GET\" /c/Users/thebe/Projects/boardfoot/app/api/pdf/[projectId]/route.ts)",
+      "Bash(grep -A 50 \"if \\(!project\\)\" /c/Users/thebe/Projects/boardfoot/app/api/pdf/[projectId]/route.ts)",
+      "Bash(grep -i \"RLS\\\\|ENABLE ROW LEVEL\\\\|CREATE POLICY\" /c/Users/thebe/Projects/boardfoot/supabase/migrations/*.sql)",
+      "Bash(grep -B 5 -A 3 \"user.id\\\\|user_id\" /c/Users/thebe/Projects/boardfoot/app/api/pdf/[projectId]/route.ts)",
+      "Bash(grep -A 40 \"if \\(!project\\)\" /c/Users/thebe/Projects/boardfoot/app/api/pdf/shopping-list/[projectId]/route.ts)"
     ]
   }
 }
