@@ -83,12 +83,30 @@ export function buildShoppingList(
       item.length_unit === "in" ? item.length_ft / 12 : item.length_ft;
     const bfPerPiece = (item.thickness_in * item.width_in * lengthFt) / 12;
     const totalBF = bfPerPiece * adjustedQty;
-    const lineCost = totalBF * item.price_per_unit;
+    const totalLF = lengthFt * adjustedQty;
+
+    let lineCost: number;
+    let quantityDisplay: string;
+    let unitDisplay: string;
+
+    if (item.pricing_mode === "per_piece") {
+      lineCost = adjustedQty * item.price_per_unit;
+      quantityDisplay = `${Math.ceil(adjustedQty)} pcs`;
+      unitDisplay = "pcs";
+    } else if (item.pricing_mode === "per_lf") {
+      lineCost = totalLF * item.price_per_unit;
+      quantityDisplay = `${totalLF.toFixed(2)} LF`;
+      unitDisplay = "LF";
+    } else {
+      lineCost = totalBF * item.price_per_unit;
+      quantityDisplay = `${totalBF.toFixed(2)} BF`;
+      unitDisplay = "BF";
+    }
 
     const listItem: ShoppingListItem = {
       description: item.species || "Unknown species",
-      quantity: `${totalBF.toFixed(2)} BF`,
-      unit: item.pricing_mode === "per_lf" ? "LF" : "BF",
+      quantity: quantityDisplay,
+      unit: unitDisplay,
       estimatedCost: lineCost,
       notes: `${item.thickness_in}" × ${item.width_in}" × ${item.length_ft}${item.length_unit ?? "ft"} × ${item.quantity} pcs`,
     };

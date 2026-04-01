@@ -50,8 +50,12 @@ function ReadOnlyLumberTable({ items }: { items: LumberItem[] }) {
               const lengthDisplay = item.length_unit === 'in'
                 ? `${item.length_ft}"`
                 : `${item.length_ft}'`
-              const bf = (item.thickness_in * item.width_in * item.length_ft) / 12 * item.quantity
-              const total = item.is_reclaimed ? 0 : bf * item.price_per_unit
+              const lengthFt = item.length_unit === 'in' ? item.length_ft / 12 : item.length_ft
+              const bf = (item.thickness_in * item.width_in * lengthFt) / 12 * item.quantity
+              const total = item.is_reclaimed ? 0
+                : item.pricing_mode === 'per_piece' ? item.price_per_unit * item.quantity
+                : item.pricing_mode === 'per_lf' ? (lengthFt * item.quantity) * item.price_per_unit
+                : bf * item.price_per_unit
               return (
                 <tr key={item.id} className="border-t border-border">
                   <td className="px-3 py-2">

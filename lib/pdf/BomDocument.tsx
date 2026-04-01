@@ -217,7 +217,12 @@ function LumberSection({
           item.length_unit === "in" ? item.length_ft / 12 : item.length_ft;
         const bf =
           ((item.thickness_in * item.width_in * lengthFt) / 12) * item.quantity;
-        const total = bf * item.price_per_unit;
+        const total =
+          item.pricing_mode === "per_piece"
+            ? item.price_per_unit * item.quantity
+            : item.pricing_mode === "per_lf"
+              ? (lengthFt * item.quantity) * item.price_per_unit
+              : bf * item.price_per_unit;
         return (
           <View
             key={item.id}
@@ -235,7 +240,7 @@ function LumberSection({
             </Text>
             <Text style={{ width: lumberCols.qty }}>{item.quantity}</Text>
             <Text style={{ width: lumberCols.mode }}>
-              {item.pricing_mode === "per_bf" ? "BF" : "LF"}
+              {item.pricing_mode === "per_piece" ? "pc" : item.pricing_mode === "per_lf" ? "LF" : "BF"}
             </Text>
             <Text style={{ width: lumberCols.price }}>
               {currency(item.price_per_unit)}
