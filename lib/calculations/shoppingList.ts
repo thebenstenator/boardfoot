@@ -90,8 +90,8 @@ export function buildShoppingList(
     let unitDisplay: string;
 
     if (item.pricing_mode === "per_piece") {
-      lineCost = adjustedQty * item.price_per_unit;
-      quantityDisplay = `${Math.ceil(adjustedQty)} pcs`;
+      lineCost = item.quantity * item.price_per_unit;
+      quantityDisplay = `${item.quantity} pcs`;
       unitDisplay = "pcs";
     } else if (item.pricing_mode === "per_lf") {
       lineCost = totalLF * item.price_per_unit;
