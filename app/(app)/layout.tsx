@@ -2,14 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { FeedbackButton } from "@/components/shared/FeedbackButton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { UserMenu } from "@/components/shared/UserMenu";
 
 function getInitials(name: string | null, email: string | null): string {
   if (name) {
@@ -76,53 +69,12 @@ export default async function AppLayout({
 
           <div className="flex items-center gap-2 sm:gap-4">
             <FeedbackButton userEmail={user.email ?? ''} />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="cursor-pointer w-9 h-9 rounded-full bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-ring">
-                {initials}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-semibold">
-                    {profile?.display_name ?? "Account"}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user.email}
-                  </p>
-                  {isPro && (
-                    <span className="text-xs text-primary font-medium">
-                      Pro
-                    </span>
-                  )}
-                </div>
-              </DropdownMenuLabel>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/settings/overhead" className="cursor-pointer">
-                  Shop settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings/billing" className="cursor-pointer">
-                  Billing
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <form action="/auth/signout" method="post" className="w-full">
-                  <button
-                    type="submit"
-                    className="cursor-pointer w-full text-left text-sm text-destructive"
-                  >
-                    Sign out
-                  </button>
-                </form>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <UserMenu
+              initials={initials}
+              displayName={profile?.display_name ?? null}
+              email={user.email ?? ''}
+              isPro={isPro}
+            />
           </div>
         </div>
       </header>
