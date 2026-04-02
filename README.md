@@ -2,7 +2,7 @@
 
 > A woodworking project cost estimator and bill of materials planner for hobbyists and small makers.
 
-**Live app:** [boardfoot.vercel.app](https://boardfoot.vercel.app)
+**Live app:** [boardfoot.app](https://boardfoot.app)
 
 ---
 
