@@ -42,6 +42,10 @@ export function PWAInstallButton() {
       return
     }
 
+    // Desktop (no touch) — browser shows its own install icon in the address bar
+    const isMobile = navigator.maxTouchPoints > 0
+    if (!isMobile) return
+
     // Listen for Chrome/Edge native install prompt
     const handler = (e: Event) => {
       e.preventDefault()
