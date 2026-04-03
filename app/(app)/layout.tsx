@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { FeedbackButton } from "@/components/shared/FeedbackButton";
 import { UserMenu } from "@/components/shared/UserMenu";
 import { PWAInstallButton } from "@/components/shared/PWAInstallButton";
 
@@ -70,8 +69,7 @@ export default async function AppLayout({
 
           <div className="flex items-center gap-2 sm:gap-4">
             <PWAInstallButton />
-            <FeedbackButton userEmail={user.email ?? ''} />
-            <UserMenu
+<UserMenu
               initials={initials}
               displayName={profile?.display_name ?? null}
               email={user.email ?? ''}
