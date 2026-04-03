@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { FeedbackButton } from "@/components/shared/FeedbackButton";
 import { UserMenu } from "@/components/shared/UserMenu";
+import { PWAInstallButton } from "@/components/shared/PWAInstallButton";
 
 function getInitials(name: string | null, email: string | null): string {
   if (name) {
@@ -68,6 +69,7 @@ export default async function AppLayout({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
+            <PWAInstallButton />
             <FeedbackButton userEmail={user.email ?? ''} />
             <UserMenu
               initials={initials}
