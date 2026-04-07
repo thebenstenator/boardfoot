@@ -13,7 +13,8 @@
       "Bash(grep -A 50 \"if \\(!project\\)\" /c/Users/thebe/Projects/boardfoot/app/api/pdf/[projectId]/route.ts)",
       "Bash(grep -i \"RLS\\\\|ENABLE ROW LEVEL\\\\|CREATE POLICY\" /c/Users/thebe/Projects/boardfoot/supabase/migrations/*.sql)",
       "Bash(grep -B 5 -A 3 \"user.id\\\\|user_id\" /c/Users/thebe/Projects/boardfoot/app/api/pdf/[projectId]/route.ts)",
-      "Bash(grep -A 40 \"if \\(!project\\)\" /c/Users/thebe/Projects/boardfoot/app/api/pdf/shopping-list/[projectId]/route.ts)"
+      "Bash(grep -A 40 \"if \\(!project\\)\" /c/Users/thebe/Projects/boardfoot/app/api/pdf/shopping-list/[projectId]/route.ts)",
+      "Bash(npx shadcn@latest add popover --yes)"
     ]
   }
 }
