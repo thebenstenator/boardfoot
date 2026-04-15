@@ -69,12 +69,14 @@ export function FinishSection({ projectId }: FinishSectionProps) {
 
   function handleUpdate(id: string, field: keyof FinishItem, raw: string) {
     const numericFields = ["container_cost", "container_size", "amount_used"];
-    const value = numericFields.includes(field) ? parseFloat(raw) || 0 : raw;
+    const value = numericFields.includes(field)
+      ? Math.max(0, parseFloat(raw) || 0)
+      : raw;
     updateItem(id, { [field]: value } as Partial<FinishItem>);
   }
 
   function handleAmountUpdate(item: FinishItem, amountRaw: string) {
-    const amount_used = parseFloat(amountRaw) || 0;
+    const amount_used = Math.max(0, parseFloat(amountRaw) || 0);
     const fraction_used =
       item.container_size && item.container_size > 0
         ? Math.min(amount_used / item.container_size, 1)

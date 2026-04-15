@@ -229,7 +229,15 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
               <input
                 type="checkbox"
                 checked={passSavingsToCustomer}
-                onChange={(e) => setPassSavingsToCustomer(e.target.checked)}
+                onChange={async (e) => {
+                  const val = e.target.checked;
+                  setPassSavingsToCustomer(val);
+                  const supabase = createClient();
+                  await supabase
+                    .from("projects")
+                    .update({ pass_reclaimed_to_customer: val })
+                    .eq("id", projectId);
+                }}
                 className="rounded"
               />
               Pass reclaimed savings to customer

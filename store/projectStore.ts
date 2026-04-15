@@ -386,6 +386,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const resolvedCutParts = (cutParts ?? []) as CutPart[]
     const resolvedLabor = (labor ?? null) as ProjectLabor | null
 
+    const passSavings = (project as Project).pass_reclaimed_to_customer ?? false
     set({
       project: project as Project,
       lumberItems: resolvedLumber,
@@ -393,6 +394,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       finishItems: resolvedFinish,
       cutParts: resolvedCutParts,
       labor: resolvedLabor,
+      passSavingsToCustomer: passSavings,
       totals: computeTotals(
         resolvedLumber,
         resolvedHardware,
@@ -400,7 +402,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         resolvedLabor,
         state.profile,
         project.waste_factor,
-        state.passSavingsToCustomer
+        passSavings
       ),
       isLoading: false,
     })

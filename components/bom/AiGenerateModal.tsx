@@ -56,6 +56,7 @@ export function AiGenerateModal({
 }: AiGenerateModalProps) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
+  const [slow, setSlow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
   const [preview, setPreview] = useState<GeneratedBom | null>(null);
@@ -84,13 +85,19 @@ export function AiGenerateModal({
   async function handleGenerate() {
     if (!prompt.trim()) return;
     setLoading(true);
+    setSlow(false);
     setError(null);
+
+    const controller = new AbortController();
+    const slowTimer = setTimeout(() => setSlow(true), 10_000);
+    const timeoutTimer = setTimeout(() => controller.abort(), 30_000);
 
     try {
       const response = await fetch("/api/ai/generate-bom", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, projectId }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -105,9 +112,16 @@ export function AiGenerateModal({
       const data = await response.json() as GeneratedBom;
       setPreview(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Generation failed");
+      if (err instanceof Error && err.name === "AbortError") {
+        setError("Request timed out — please try again.");
+      } else {
+        setError(err instanceof Error ? err.message : "Generation failed");
+      }
     } finally {
+      clearTimeout(slowTimer);
+      clearTimeout(timeoutTimer);
       setLoading(false);
+      setSlow(false);
     }
   }
 
@@ -287,6 +301,12 @@ export function AiGenerateModal({
 
               {error && (
                 <p className="text-sm text-destructive">{error}</p>
+              )}
+
+              {slow && !error && (
+                <p className="text-xs text-muted-foreground">
+                  Taking longer than expected…
+                </p>
               )}
 
               {!isPro && generationsUsed !== null && (

@@ -106,6 +106,13 @@ export function CostSummary() {
             label="Overhead share"
             value={formatCurrency(totals.overhead.share)}
           />
+        ) : profile.monthly_overhead > 0 && profile.projects_per_month <= 0 ? (
+          <div className="flex justify-between items-center text-sm text-muted-foreground">
+            <span>Overhead share</span>
+            <a href="/settings/overhead" className="text-xs underline hover:text-foreground" title="Set projects/month to distribute overhead">
+              Set projects/month
+            </a>
+          </div>
         ) : (
           <div className="flex justify-between items-center text-sm text-muted-foreground">
             <span>Overhead share</span>

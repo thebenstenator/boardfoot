@@ -74,7 +74,9 @@ export function LumberSection({ projectId }: LumberSectionProps) {
       "price_per_unit",
       "waste_override",
     ];
-    const value = numericFields.includes(field) ? parseFloat(raw) || 0 : raw;
+    const value = numericFields.includes(field)
+      ? Math.max(0, parseFloat(raw) || 0)
+      : raw;
     updateItem(id, { [field]: value } as Partial<LumberItem>);
   }
 

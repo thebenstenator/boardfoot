@@ -75,8 +75,12 @@ export function useLumberItems(projectId: string) {
 
       // Schedule DB delete in 5s — cancelled if undo is called
       const timeout = setTimeout(async () => {
-        await supabase.from("lumber_items").delete().eq("id", id);
+        const { error } = await supabase.from("lumber_items").delete().eq("id", id);
         pendingDeletes.current.delete(id);
+        if (error) {
+          console.error("Failed to delete lumber item:", error);
+          addLumberItem(item);
+        }
       }, 5000);
 
       pendingDeletes.current.set(id, { item, timeout });
@@ -163,8 +167,12 @@ export function useHardwareItems(projectId: string) {
       removeHardwareItem(id);
 
       const timeout = setTimeout(async () => {
-        await supabase.from("hardware_items").delete().eq("id", id);
+        const { error } = await supabase.from("hardware_items").delete().eq("id", id);
         pendingDeletes.current.delete(id);
+        if (error) {
+          console.error("Failed to delete hardware item:", error);
+          addHardwareItem(item);
+        }
       }, 5000);
 
       pendingDeletes.current.set(id, { item, timeout });
@@ -245,8 +253,12 @@ export function useFinishItems(projectId: string) {
       removeFinishItem(id);
 
       const timeout = setTimeout(async () => {
-        await supabase.from("finish_items").delete().eq("id", id);
+        const { error } = await supabase.from("finish_items").delete().eq("id", id);
         pendingDeletes.current.delete(id);
+        if (error) {
+          console.error("Failed to delete finish item:", error);
+          addFinishItem(item);
+        }
       }, 5000);
 
       pendingDeletes.current.set(id, { item, timeout });
@@ -356,8 +368,12 @@ export function useCutParts(projectId: string) {
     if (!item) return null;
     removeCutPart(id);
     const timeout = setTimeout(async () => {
-      await supabase.from("cut_parts").delete().eq("id", id);
+      const { error } = await supabase.from("cut_parts").delete().eq("id", id);
       pendingDeletes.current.delete(id);
+      if (error) {
+        console.error("Failed to delete cut part:", error);
+        addCutPart(item);
+      }
     }, 5000);
     pendingDeletes.current.set(id, { item, timeout });
     return item;

@@ -57,7 +57,9 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
 
   function handleUpdate(id: string, field: keyof HardwareItem, raw: string) {
     const numericFields = ["quantity", "unit_cost"];
-    const value = numericFields.includes(field) ? parseFloat(raw) || 0 : raw;
+    const value = numericFields.includes(field)
+      ? Math.max(0, parseFloat(raw) || 0)
+      : raw;
     updateItem(id, { [field]: value } as Partial<HardwareItem>);
   }
 
