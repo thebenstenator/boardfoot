@@ -245,7 +245,7 @@ function LumberSection({
             <Text style={{ width: lumberCols.price }}>
               {currency(item.price_per_unit)}
             </Text>
-            <Text style={{ width: lumberCols.bf }}>{bf.toFixed(2)}</Text>
+            <Text style={{ width: lumberCols.bf }}>{item.pricing_mode === "per_piece" ? "—" : bf.toFixed(2)}</Text>
             <Text style={{ width: lumberCols.total, textAlign: "right" }}>
               {currency(total)}
             </Text>

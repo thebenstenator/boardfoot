@@ -35,14 +35,6 @@ function calcLumberTotals(
       } else {
         pieceCost += lineCost
       }
-      // BF still tracked for informational purposes
-      const bfPerPiece = calculateBoardFeetFlexible(
-        item.thickness_in,
-        item.width_in,
-        item.length_ft,
-        (item.length_unit ?? 'ft') as LengthUnit
-      )
-      boardFeetNet += bfPerPiece * item.quantity
       continue
     }
 
