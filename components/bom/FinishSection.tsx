@@ -106,7 +106,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
           setTimeout(() => {
             const rows = document.querySelectorAll('[data-finish-row]');
             const last = rows[rows.length - 1];
-            (last?.querySelector('input') as HTMLInputElement)?.focus();
+            (last?.querySelector('input, textarea') as HTMLElement)?.focus();
           }, 0);
         }}>
           + Add consumable
@@ -123,7 +123,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                     setTimeout(() => {
                       const rows = document.querySelectorAll('[data-finish-row]');
                       const last = rows[rows.length - 1];
-                      (last?.querySelector('input') as HTMLInputElement)?.focus();
+                      (last?.querySelector('input, textarea') as HTMLElement)?.focus();
                     }, 0);
                   }}
                   className="py-10 text-center text-sm text-muted-foreground/50 hover:text-muted-foreground/70 cursor-pointer select-none transition-colors border border-dashed rounded-md my-2"
@@ -249,7 +249,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                   setTimeout(() => {
                     const rows = document.querySelectorAll('[data-finish-row]');
                     const last = rows[rows.length - 1];
-                    (last?.querySelector('input') as HTMLInputElement)?.focus();
+                    (last?.querySelector('input, textarea') as HTMLElement)?.focus();
                   }, 0);
                 }}
                 className="flex items-center w-full gap-3 py-2 border-b border-dashed
