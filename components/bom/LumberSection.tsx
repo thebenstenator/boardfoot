@@ -439,6 +439,9 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                     </TooltipContent>
                   </Tooltip>
                 </div>
+                <p className="text-[10px] text-muted-foreground/50 text-right mt-1">
+                  BF totals include $/BF and $/LF items only — $/piece items are excluded.
+                </p>
                 </>}
               </div>
             </div>
