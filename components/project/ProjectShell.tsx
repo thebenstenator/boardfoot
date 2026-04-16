@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useProjectStore } from "@/store/projectStore";
 import { createClient } from "@/lib/supabase/client";
 import { LumberSection } from "@/components/bom/LumberSection";
@@ -25,19 +25,6 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   const totals = useProjectStore((state) => state.totals);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  const [justSaved, setJustSaved] = useState(false);
-  const justSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (pendingSaves === 0 && !isLoading) {
-      setJustSaved(true);
-      if (justSavedTimer.current) clearTimeout(justSavedTimer.current);
-      justSavedTimer.current = setTimeout(() => setJustSaved(false), 2000);
-    }
-    return () => {
-      if (justSavedTimer.current) clearTimeout(justSavedTimer.current);
-    };
-  }, [pendingSaves, isLoading]);
   // Surface area inputs: L ft+in, W ft+in
   const [dimLft, setDimLft] = useState('');
   const [dimLin, setDimLin] = useState('');
@@ -264,13 +251,6 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
           )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Save status indicator */}
-          {pendingSaves > 0 ? (
-            <span className="text-xs text-muted-foreground">Saving…</span>
-          ) : justSaved ? (
-            <span className="text-xs text-muted-foreground">Saved ✓</span>
-          ) : null}
-
           <button
             onClick={handleShareToggle}
             className={`text-xs border rounded px-2 py-1 transition-colors cursor-pointer
@@ -287,6 +267,11 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
           <CutListButton projectId={projectId} />
           <ShoppingListButton projectId={projectId} />
           <ExportButton projectId={projectId} />
+        </div>
+
+        {/* Save status — always visible, Google Docs style */}
+        <div className="text-xs text-muted-foreground">
+          {pendingSaves > 0 ? 'Saving…' : 'Saved'}
         </div>
       </div>
 
