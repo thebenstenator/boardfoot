@@ -38,6 +38,24 @@ interface LumberSectionProps {
   projectId: string;
 }
 
+function inferPricingMode(species: string): LumberItem['pricing_mode'] {
+  const s = species.toLowerCase().trim();
+  if (!s) return 'per_bf';
+  // Dimensional / big-box patterns → per_piece
+  if (/^\d+x\d+/.test(s)) return 'per_piece';      // 2x4, 4x4, 1x6, etc.
+  if (/\bplywood\b/.test(s)) return 'per_piece';
+  if (/\bmdf\b/.test(s)) return 'per_piece';
+  if (/\bosb\b/.test(s)) return 'per_piece';
+  if (/\bmelamine\b/.test(s)) return 'per_piece';
+  if (/\bhardboard\b/.test(s)) return 'per_piece';
+  if (/\bparticle.?board\b/.test(s)) return 'per_piece';
+  if (/\bstuds?\b/.test(s)) return 'per_piece';
+  if (/\bfurring\b/.test(s)) return 'per_piece';
+  if (/\bwhitewood\b/.test(s)) return 'per_piece';
+  if (/\bspf\b/.test(s)) return 'per_piece';
+  return 'per_bf';
+}
+
 export function LumberSection({ projectId }: LumberSectionProps) {
   const { items, addItem, updateItem, removeItem, undoRemove } = useLumberItems(projectId);
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null);
@@ -140,13 +158,13 @@ export function LumberSection({ projectId }: LumberSectionProps) {
           <h2 className="text-lg font-semibold">Lumber</h2>
           <Button
             size="sm"
-            onClick={() => {
-              addItem();
+            onClick={async () => {
+              await addItem();
               setTimeout(() => {
                 const rows = document.querySelectorAll('[data-lumber-row]');
                 const last = rows[rows.length - 1];
                 (last?.querySelector('input') as HTMLInputElement)?.focus();
-              }, 50);
+              }, 0);
             }}
           >
             + Add lumber
@@ -200,7 +218,9 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                         <SpeciesInput
                           value={item.species}
                           onChange={(species, suggestedPrice, dimensions) => {
+                            const pricingMode = inferPricingMode(species);
                             handleUpdate(item.id, "species", species);
+                            updateItem(item.id, { pricing_mode: pricingMode });
                             if (suggestedPrice !== undefined) {
                               updateItem(item.id, {
                                 price_per_unit: suggestedPrice,
@@ -374,13 +394,13 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                 )}
                 {/* Ghost row — click to add */}
                 <div
-                  onClick={() => {
-                    addItem();
+                  onClick={async () => {
+                    await addItem();
                     setTimeout(() => {
                       const rows = document.querySelectorAll('[data-lumber-row]');
                       const last = rows[rows.length - 1];
                       (last?.querySelector('input') as HTMLInputElement)?.focus();
-                    }, 50);
+                    }, 0);
                   }}
                   className="flex items-center w-full gap-3 py-2 border-b border-dashed
                     text-sm text-muted-foreground/40 hover:text-muted-foreground/70
