@@ -27,6 +27,14 @@ import {
 
 const UNIT_OPTIONS: HardwareUnit[] = ["each", "box", "pair", "set", "lb", "oz"];
 
+function inferHardwareUnit(description: string): HardwareUnit {
+  const s = description.toLowerCase();
+  if (/\bnails?\b|\bscrews?\b|\bbolts?\b|\bstaples?\b|\btacks?\b|\bwasher|\bnut\b|\bnuts\b|\banchor|\bdrywall/.test(s)) return 'box';
+  if (/\bhinges?\b|\bhandles?\b|\bknobs?\b|\bpulls?\b|\bbrackets?\b|\bslides?\b|\bcaster/.test(s)) return 'pair';
+  if (/\bchain\b|\brope\b|\bwire\b|\bstrap\b/.test(s)) return 'lb';
+  return 'each';
+}
+
 interface HardwareSectionProps {
   projectId: string;
 }
@@ -129,9 +137,14 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                     <div className={col.first} title={item.description}>
                       <DescriptionCell
                         value={item.description}
-                        onChange={(v) =>
-                          handleUpdate(item.id, "description", v)
-                        }
+                        onChange={(v) => {
+                          const isNew = item.description === "";
+                          handleUpdate(item.id, "description", v);
+                          if (isNew) {
+                            const inferred = inferHardwareUnit(v);
+                            if (inferred !== item.unit) updateItem(item.id, { unit: inferred });
+                          }
+                        }}
                         tabIndex={baseTab}
                       />
                     </div>

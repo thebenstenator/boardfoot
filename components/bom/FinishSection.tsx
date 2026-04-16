@@ -40,6 +40,23 @@ const FINISH_UNITS = [
   "item",
 ];
 
+function inferFinishUnit(description: string): string {
+  const s = description.toLowerCase();
+  if (/\bgallon\b|\bgal\b/.test(s)) return 'gal';
+  if (/\bquart\b|\bqt\b/.test(s)) return 'qt';
+  if (/\blitre\b|\bliter\b|\b\bL\b/.test(s)) return 'L';
+  if (/\bml\b|\bmillilitre\b/.test(s)) return 'ml';
+  if (/\bglue\b|\bpoly\b|\bpolyurethane\b|\blacquer\b|\bvarnish\b|\bshellac\b|\bdanish\b|\btung\b|\blinseed\b|\boil\b|\bstain\b|\bpaint\b|\bprimer\b|\bseal/.test(s)) return 'fl oz';
+  if (/\bwax\b|\bputty\b|\bfill/.test(s)) return 'oz';
+  if (/\bsandpaper\b|\bsanding disc\b|\babrasive disc/.test(s)) return 'discs';
+  if (/\bsand(ing)?\b|\bsheet\b/.test(s)) return 'sheets';
+  if (/\bsteel wool\b|\btape\b|\bmasking\b/.test(s)) return 'roll';
+  if (/\bcaulk\b|\bfiller\b|\bwood filler\b/.test(s)) return 'tubes';
+  if (/\bwax stick\b|\bfill stick\b|\bcrayon\b/.test(s)) return 'sticks';
+  if (/\bbrush\b|\broller\b|\bsponge\b|\bpad\b/.test(s)) return 'item';
+  return 'oz';
+}
+
 interface FinishSectionProps {
   projectId: string;
 }
@@ -160,9 +177,14 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                     <div className={col.first} title={item.description}>
                       <DescriptionCell
                         value={item.description}
-                        onChange={(v) =>
-                          handleUpdate(item.id, "description", v)
-                        }
+                        onChange={(v) => {
+                          const isNew = item.description === "";
+                          handleUpdate(item.id, "description", v);
+                          if (isNew) {
+                            const inferred = inferFinishUnit(v);
+                            if (inferred !== item.unit) updateItem(item.id, { unit: inferred });
+                          }
+                        }}
                         tabIndex={baseTab}
                       />
                     </div>
