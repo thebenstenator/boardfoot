@@ -267,11 +267,11 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
           <CutListButton projectId={projectId} />
           <ShoppingListButton projectId={projectId} />
           <ExportButton projectId={projectId} />
-        </div>
 
-        {/* Save status — always visible, Google Docs style */}
-        <div className="text-xs text-muted-foreground">
-          {pendingSaves > 0 ? 'Saving…' : 'Saved'}
+          {/* Save status — always visible, Google Docs style */}
+          <span className="ml-auto text-xs text-muted-foreground">
+            {pendingSaves > 0 ? 'Saving…' : 'Saved'}
+          </span>
         </div>
       </div>
 
