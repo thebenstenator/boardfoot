@@ -101,7 +101,14 @@ export function FinishSection({ projectId }: FinishSectionProps) {
     <div className={bomSection}>
       <div className={bomSectionHeader}>
         <h2 className="text-lg font-semibold">Consumables</h2>
-        <Button size="sm" onClick={addItem}>
+        <Button size="sm" onClick={async () => {
+          await addItem();
+          setTimeout(() => {
+            const rows = document.querySelectorAll('[data-finish-row]');
+            const last = rows[rows.length - 1];
+            (last?.querySelector('input') as HTMLInputElement)?.focus();
+          }, 0);
+        }}>
           + Add consumable
         </Button>
       </div>
@@ -111,7 +118,14 @@ export function FinishSection({ projectId }: FinishSectionProps) {
             <div>
               {items.length === 0 ? (
                 <div
-                  onClick={addItem}
+                  onClick={async () => {
+                    await addItem();
+                    setTimeout(() => {
+                      const rows = document.querySelectorAll('[data-finish-row]');
+                      const last = rows[rows.length - 1];
+                      (last?.querySelector('input') as HTMLInputElement)?.focus();
+                    }, 0);
+                  }}
                   className="py-10 text-center text-sm text-muted-foreground/50 hover:text-muted-foreground/70 cursor-pointer select-none transition-colors border border-dashed rounded-md my-2"
                 >
                   No consumables yet — click to add your first item
@@ -140,6 +154,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                     </div>
                   )}
                   <div
+                    data-finish-row
                     className={`${bomRow} border-b hover:bg-muted/30`}
                   >
                     <div className={col.first} title={item.description}>
@@ -229,7 +244,14 @@ export function FinishSection({ projectId }: FinishSectionProps) {
 
               {/* Ghost row — click to add */}
               <div
-                onClick={addItem}
+                onClick={async () => {
+                  await addItem();
+                  setTimeout(() => {
+                    const rows = document.querySelectorAll('[data-finish-row]');
+                    const last = rows[rows.length - 1];
+                    (last?.querySelector('input') as HTMLInputElement)?.focus();
+                  }, 0);
+                }}
                 className="flex items-center w-full gap-3 py-2 border-b border-dashed
                   text-sm text-muted-foreground/40 hover:text-muted-foreground/70
                   hover:bg-muted/20 cursor-pointer select-none transition-colors"
