@@ -9,6 +9,7 @@ import type { UserProfile } from "@/types/bom";
 export function useSubscription() {
   const { profile, setProfile, tier } = useUserStore();
 
+  // Initial load: fetch from Supabase once per session
   useEffect(() => {
     if (profile?.id) return; // already loaded
 
@@ -34,6 +35,14 @@ export function useSubscription() {
 
     loadProfile();
   }, [profile?.id, setProfile]);
+
+  // Keep projectStore in sync whenever userStore profile changes
+  // (e.g. after saving shop settings)
+  useEffect(() => {
+    if (profile) {
+      useProjectStore.getState().setProfile(profile);
+    }
+  }, [profile]);
 
   return {
     tier,
