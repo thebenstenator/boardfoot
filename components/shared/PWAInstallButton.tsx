@@ -42,8 +42,10 @@ export function PWAInstallButton() {
       return
     }
 
-    // Desktop (no touch) — browser shows its own install icon in the address bar
-    const isMobile = navigator.maxTouchPoints > 0
+    // Desktop — browser shows its own install icon in the address bar.
+    // Use (pointer: coarse) rather than maxTouchPoints — Chrome on Windows
+    // often reports maxTouchPoints > 0 on non-touch hardware, causing false positives.
+    const isMobile = window.matchMedia('(pointer: coarse)').matches
     if (!isMobile) return
 
     // Listen for Chrome/Edge native install prompt
