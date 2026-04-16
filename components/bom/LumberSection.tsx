@@ -42,6 +42,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
   const { items, addItem, updateItem, removeItem, undoRemove } = useLumberItems(projectId);
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null);
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [stalePriceIds, setStalePriceIds] = useState<Set<string>>(new Set());
 
   function handleRemove(id: string, label: string, index: number) {
     removeItem(id);
@@ -155,6 +156,14 @@ export function LumberSection({ projectId }: LumberSectionProps) {
         <div>
             <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
               <div className="min-w-[800px] sm:min-w-0">
+                {items.length === 0 ? (
+                  <div
+                    onClick={() => addItem()}
+                    className="py-10 text-center text-sm text-muted-foreground/50 hover:text-muted-foreground/70 cursor-pointer select-none transition-colors border border-dashed rounded-md my-2"
+                  >
+                    No lumber yet — click to add your first board
+                  </div>
+                ) : <>
                 {/* Header row */}
                 <div className={bomHeader}>
                   <span className={`${col.first}`}>Item</span>
@@ -292,9 +301,10 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                       <div className={col.pricingMode}>
                         <Select
                           value={item.pricing_mode}
-                          onValueChange={(v) =>
-                            updateItem(item.id, { pricing_mode: v as LumberItem['pricing_mode'] })
-                          }
+                          onValueChange={(v) => {
+                            updateItem(item.id, { pricing_mode: v as LumberItem['pricing_mode'] });
+                            setStalePriceIds((prev) => new Set(prev).add(item.id));
+                          }}
                         >
                           <SelectTrigger
                             className="h-7 text-xs border-transparent hover:border-border focus:border-ring px-1.5"
@@ -309,14 +319,27 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className={col.lg}>
+                      <div className={`${col.lg} relative`}>
                         <CurrencyCell
                           value={item.price_per_unit}
-                          onChange={(v) =>
-                            handleUpdate(item.id, "price_per_unit", v)
-                          }
+                          onChange={(v) => {
+                            handleUpdate(item.id, "price_per_unit", v);
+                            setStalePriceIds((prev) => {
+                              const next = new Set(prev);
+                              next.delete(item.id);
+                              return next;
+                            });
+                          }}
                           tabIndex={baseTab + 7}
                         />
+                        {stalePriceIds.has(item.id) && (
+                          <span
+                            title="Unit changed — update price to match"
+                            className="absolute -top-0.5 -right-0.5 text-[10px] text-amber-500 leading-none pointer-events-none"
+                          >
+                            ⚠
+                          </span>
+                        )}
                       </div>
                       <div
                         className={`${col.sm} text-right text-muted-foreground text-sm`}
@@ -396,6 +419,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                     </TooltipContent>
                   </Tooltip>
                 </div>
+                </>}
               </div>
             </div>
           </div>

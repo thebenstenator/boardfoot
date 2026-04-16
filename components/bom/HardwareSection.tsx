@@ -79,6 +79,14 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
       <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
           <div className="min-w-[500px] sm:min-w-0">
             <div>
+              {items.length === 0 ? (
+                <div
+                  onClick={addItem}
+                  className="py-10 text-center text-sm text-muted-foreground/50 hover:text-muted-foreground/70 cursor-pointer select-none transition-colors border border-dashed rounded-md my-2"
+                >
+                  No hardware yet — click to add your first item
+                </div>
+              ) : <>
               <div className={bomHeader}>
                 <span className={col.first}>Description</span>
                 <span className={col.sm}>Qty</span>
@@ -190,6 +198,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                   Hardware total: {formatCurrency(totals.hardware.total)}
                 </span>
               </div>
+              </>}
             </div>
           </div>
         </div>

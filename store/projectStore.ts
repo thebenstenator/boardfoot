@@ -43,9 +43,12 @@ interface ProjectStore {
 
   // Status
   isLoading: boolean
-  isSaving: boolean
+  pendingSaves: number
 
   // Actions
+  startSave: () => void
+  endSave: () => void
+
   setProject: (project: Project) => void
   setProfile: (profile: UserProfile) => void
   setPassSavingsToCustomer: (val: boolean) => void
@@ -106,7 +109,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   passSavingsToCustomer: false,
   totals: EMPTY_TOTALS,
   isLoading: false,
-  isSaving: false,
+  pendingSaves: 0,
+
+  startSave: () => set((s) => ({ pendingSaves: s.pendingSaves + 1 })),
+  endSave: () => set((s) => ({ pendingSaves: Math.max(0, s.pendingSaves - 1) })),
 
   setProject: (project) => {
     const state = get()

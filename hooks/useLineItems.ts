@@ -52,14 +52,15 @@ export function useLumberItems(projectId: string) {
       // Optimistic update — update store immediately
       updateLumberItem(id, patch);
 
+      useProjectStore.getState().startSave();
       const { error } = await supabase
         .from("lumber_items")
         .update(patch)
         .eq("id", id);
+      useProjectStore.getState().endSave();
 
       if (error) {
         console.error("Failed to update lumber item:", error);
-        // TODO: rollback optimistic update on error
       }
     },
     [supabase, updateLumberItem],
@@ -147,10 +148,12 @@ export function useHardwareItems(projectId: string) {
     async (id: string, patch: Partial<HardwareItem>) => {
       updateHardwareItem(id, patch);
 
+      useProjectStore.getState().startSave();
       const { error } = await supabase
         .from("hardware_items")
         .update(patch)
         .eq("id", id);
+      useProjectStore.getState().endSave();
 
       if (error) {
         console.error("Failed to update hardware item:", error);
@@ -233,10 +236,12 @@ export function useFinishItems(projectId: string) {
     async (id: string, patch: Partial<FinishItem>) => {
       updateFinishItem(id, patch);
 
+      useProjectStore.getState().startSave();
       const { error } = await supabase
         .from("finish_items")
         .update(patch)
         .eq("id", id);
+      useProjectStore.getState().endSave();
 
       if (error) {
         console.error("Failed to update finish item:", error);
@@ -359,7 +364,9 @@ export function useCutParts(projectId: string) {
 
   const updateItem = useCallback(async (id: string, patch: Partial<CutPart>) => {
     updateCutPart(id, patch);
+    useProjectStore.getState().startSave();
     const { error } = await supabase.from("cut_parts").update(patch).eq("id", id);
+    useProjectStore.getState().endSave();
     if (error) console.error("Failed to update cut part:", error);
   }, [supabase, updateCutPart]);
 

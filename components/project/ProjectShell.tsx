@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useProjectStore } from "@/store/projectStore";
 import { createClient } from "@/lib/supabase/client";
 import { LumberSection } from "@/components/bom/LumberSection";
@@ -21,8 +21,23 @@ interface ProjectShellProps {
 export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   const { loadProject, project, isLoading, setProject, passSavingsToCustomer, setPassSavingsToCustomer } = useProjectStore();
   const hasReclaimed = useProjectStore((state) => state.lumberItems.some((i) => i.is_reclaimed));
+  const pendingSaves = useProjectStore((state) => state.pendingSaves);
+  const totals = useProjectStore((state) => state.totals);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
+  const [justSaved, setJustSaved] = useState(false);
+  const justSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (pendingSaves === 0 && !isLoading) {
+      setJustSaved(true);
+      if (justSavedTimer.current) clearTimeout(justSavedTimer.current);
+      justSavedTimer.current = setTimeout(() => setJustSaved(false), 2000);
+    }
+    return () => {
+      if (justSavedTimer.current) clearTimeout(justSavedTimer.current);
+    };
+  }, [pendingSaves, isLoading]);
   // Surface area inputs: L ft+in, W ft+in
   const [dimLft, setDimLft] = useState('');
   const [dimLin, setDimLin] = useState('');
@@ -111,8 +126,12 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
     );
   }
 
+  function formatCurrency(n: number) {
+    return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  }
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 pb-16 lg:pb-0">
       {/* Project name + export button */}
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-0.5 min-w-0">
@@ -245,6 +264,13 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
           )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Save status indicator */}
+          {pendingSaves > 0 ? (
+            <span className="text-xs text-muted-foreground">Saving…</span>
+          ) : justSaved ? (
+            <span className="text-xs text-muted-foreground">Saved ✓</span>
+          ) : null}
+
           <button
             onClick={handleShareToggle}
             className={`text-xs border rounded px-2 py-1 transition-colors cursor-pointer
@@ -275,6 +301,12 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
         <div className="lg:sticky lg:top-8">
           <CostSummary />
         </div>
+      </div>
+
+      {/* Mobile sticky cost bar — hidden on lg+ where sidebar is visible */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur-sm px-4 py-3 flex justify-between items-center">
+        <span className="text-sm text-muted-foreground">Grand total</span>
+        <span className="text-sm font-semibold">{formatCurrency(totals.grandTotal)}</span>
       </div>
     </div>
   );

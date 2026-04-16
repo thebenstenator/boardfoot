@@ -196,6 +196,9 @@ export function SpeciesInput({ value, onChange, tabIndex, autoFocusInput }: Spec
               );
             }
           })}
+          <div className="px-3 py-1.5 border-t text-[10px] text-muted-foreground/60">
+            Est. prices — ★ to set your own
+          </div>
         </div>
       )}
     </div>
