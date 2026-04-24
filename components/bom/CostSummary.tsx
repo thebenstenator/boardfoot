@@ -10,6 +10,9 @@ export function CostSummary() {
   const project = useProjectStore((state) => state.project)
   const profile = useProjectStore((state) => state.profile)
   const passSavingsToCustomer = useProjectStore((state) => state.passSavingsToCustomer)
+  const excludeOverhead = useProjectStore((state) => state.excludeOverhead)
+  const setExcludeOverhead = useProjectStore((state) => state.setExcludeOverhead)
+  const projectId = project?.id
 
   // Flash ring when totals change
   const [flashed, setFlashed] = useState(false)
@@ -37,6 +40,9 @@ export function CostSummary() {
     : 0.30
 
   const etsyFees = calculateEtsyFees(totals.etsyListingPrice)
+  const overheadAmount = profile.projects_per_month > 0
+    ? profile.monthly_overhead / profile.projects_per_month
+    : 0
 
   return (
     <div className={`rounded-lg border bg-card p-6 space-y-4 transition-all duration-500 ${
@@ -101,17 +107,29 @@ export function CostSummary() {
             : '—'}
           muted={totals.labor.total === 0}
         />
-        {totals.overhead.share > 0 ? (
-          <SummaryRow
-            label="Overhead share"
-            value={formatCurrency(totals.overhead.share)}
-          />
-        ) : profile.monthly_overhead > 0 && profile.projects_per_month <= 0 ? (
-          <div className="flex justify-between items-center text-sm text-muted-foreground">
-            <span>Overhead share</span>
-            <a href="/settings/overhead" className="text-xs underline hover:text-foreground" title="Set projects/month to distribute overhead">
-              Set projects/month
-            </a>
+        {profile.monthly_overhead > 0 ? (
+          <div className="flex justify-between items-center text-sm">
+            <label className="flex items-center gap-1.5 cursor-pointer select-none text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={!excludeOverhead}
+                onChange={async (e) => {
+                  const val = !e.target.checked;
+                  setExcludeOverhead(val);
+                  if (projectId) {
+                    const { createClient } = await import('@/lib/supabase/client');
+                    await createClient().from('projects').update({ exclude_overhead: val }).eq('id', projectId);
+                  }
+                }}
+                className="rounded"
+              />
+              Overhead share
+            </label>
+            <span className={excludeOverhead ? 'line-through text-muted-foreground' : ''}>
+              {overheadAmount > 0
+                ? formatCurrency(overheadAmount)
+                : <a href="/settings/overhead" className="text-xs underline hover:text-foreground" title="Set projects/month">Set projects/month</a>}
+            </span>
           </div>
         ) : (
           <div className="flex justify-between items-center text-sm text-muted-foreground">

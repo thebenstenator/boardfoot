@@ -118,13 +118,14 @@ export function calculateProjectTotals(
   labor: ProjectLabor | null,
   profile: UserProfile,
   projectWasteFactor: number,
-  passSavingsToCustomer: boolean = false
+  passSavingsToCustomer: boolean = false,
+  excludeOverhead: boolean = false
 ): ProjectTotals {
   const lumber = calcLumberTotals(lumberItems, projectWasteFactor)
   const hardwareTotal = calcHardwareTotal(hardwareItems)
   const finishTotal = calcFinishTotal(finishItems)
   const laborTotal = calcLaborTotal(labor, profile)
-  const overheadShare = calcOverheadShare(profile)
+  const overheadShare = excludeOverhead ? 0 : calcOverheadShare(profile)
 
   const subtotal = lumber.adjustedCost + hardwareTotal + finishTotal
   const grandTotal = subtotal + laborTotal + overheadShare

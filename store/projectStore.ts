@@ -35,8 +35,9 @@ interface ProjectStore {
   labor: ProjectLabor | null
   profile: UserProfile
 
-  // UI-only settings (not persisted to DB)
+  // Per-project settings (persisted to DB)
   passSavingsToCustomer: boolean
+  excludeOverhead: boolean
 
   // Computed
   totals: ProjectTotals
@@ -52,6 +53,7 @@ interface ProjectStore {
   setProject: (project: Project) => void
   setProfile: (profile: UserProfile) => void
   setPassSavingsToCustomer: (val: boolean) => void
+  setExcludeOverhead: (val: boolean) => void
 
   addLumberItem: (item: LumberItem) => void
   updateLumberItem: (id: string, patch: Partial<LumberItem>) => void
@@ -83,7 +85,8 @@ function computeTotals(
   labor: ProjectLabor | null,
   profile: UserProfile,
   wasteFactor: number,
-  passSavingsToCustomer: boolean = false
+  passSavingsToCustomer: boolean = false,
+  excludeOverhead: boolean = false
 ): ProjectTotals {
   return calculateProjectTotals(
     lumberItems,
@@ -92,7 +95,8 @@ function computeTotals(
     labor,
     profile,
     wasteFactor,
-    passSavingsToCustomer
+    passSavingsToCustomer,
+    excludeOverhead
   )
 }
 
@@ -107,6 +111,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   labor: null,
   profile: DEFAULT_PROFILE,
   passSavingsToCustomer: false,
+  excludeOverhead: false,
   totals: EMPTY_TOTALS,
   isLoading: false,
   pendingSaves: 0,
@@ -125,7 +130,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         project.waste_factor,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -141,7 +147,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -157,6 +164,24 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
+        val,
+        state.excludeOverhead
+      ),
+    })
+  },
+
+  setExcludeOverhead: (val) => {
+    const state = get()
+    set({
+      excludeOverhead: val,
+      totals: computeTotals(
+        state.lumberItems,
+        state.hardwareItems,
+        state.finishItems,
+        state.labor,
+        state.profile,
+        state.project?.waste_factor ?? 0.15,
+        state.passSavingsToCustomer,
         val
       ),
     })
@@ -174,7 +199,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -193,7 +219,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -210,7 +237,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -227,7 +255,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -246,7 +275,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -263,7 +293,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -280,7 +311,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -299,7 +331,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -316,7 +349,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -355,7 +389,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         labor,
         state.profile,
         state.project?.waste_factor ?? 0.15,
-        state.passSavingsToCustomer
+        state.passSavingsToCustomer,
+        state.excludeOverhead
       ),
     })
   },
@@ -393,6 +428,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const resolvedLabor = (labor ?? null) as ProjectLabor | null
 
     const passSavings = (project as Project).pass_reclaimed_to_customer ?? false
+    const excludeOverhead = (project as Project).exclude_overhead ?? false
     set({
       project: project as Project,
       lumberItems: resolvedLumber,
@@ -401,6 +437,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       cutParts: resolvedCutParts,
       labor: resolvedLabor,
       passSavingsToCustomer: passSavings,
+      excludeOverhead,
       totals: computeTotals(
         resolvedLumber,
         resolvedHardware,
@@ -408,7 +445,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         resolvedLabor,
         state.profile,
         project.waste_factor,
-        passSavings
+        passSavings,
+        excludeOverhead
       ),
       isLoading: false,
     })

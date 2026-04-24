@@ -98,6 +98,7 @@ export interface Project {
   status: 'active' | 'archived'
   is_public: boolean
   pass_reclaimed_to_customer: boolean
+  exclude_overhead: boolean
   created_at: string
   updated_at: string
 }

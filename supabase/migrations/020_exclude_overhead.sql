@@ -1,0 +1,1 @@
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS exclude_overhead BOOLEAN NOT NULL DEFAULT false;
