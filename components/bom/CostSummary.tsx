@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useProjectStore } from '@/store/projectStore'
 import { useUserStore } from '@/store/userStore'
+import { useSubscription } from '@/hooks/useSubscription'
 import { calculateEtsyFees } from '@/lib/calculations/etsyFees'
 
 export function CostSummary() {
+  useSubscription()
   const totals = useProjectStore((state) => state.totals)
   const project = useProjectStore((state) => state.project)
   const profile = useProjectStore((state) => state.profile)
