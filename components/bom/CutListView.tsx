@@ -75,9 +75,9 @@ function BoardLayoutView({ layout }: { layout: BoardLayout }) {
 // ─── Sheet Layout Diagram ─────────────────────────────────────────────────────
 
 function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLayout; group: StockGroup; boardMode?: boolean }) {
-  const DIAGRAM_WIDTH = '100%'
+  const DIAGRAM_WIDTH_PX = 480
   const DIAGRAM_HEIGHT = boardMode
-    ? Math.max(48, Math.min(80, Math.round((group.stockWidthIn / group.stockLengthIn) * DIAGRAM_WIDTH * 3)))
+    ? Math.max(48, Math.min(80, Math.round((group.stockWidthIn / group.stockLengthIn) * DIAGRAM_WIDTH_PX * 3)))
     : 200
 
   return (
