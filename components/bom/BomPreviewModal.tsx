@@ -106,7 +106,7 @@ export function BomPreviewModal({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="w-full max-w-4xl h-[85vh] flex flex-col p-0 gap-0 sm:max-w-4xl">
+      <DialogContent className="sm:max-w-4xl sm:h-[85vh] flex flex-col p-0 gap-0">
         <DialogHeader className="flex-row items-center justify-between border-b border-border px-4 py-3 shrink-0">
           <DialogTitle>BOM Preview</DialogTitle>
           <div className="flex items-center gap-2">
@@ -130,8 +130,15 @@ export function BomPreviewModal({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        {/* PDF viewer — hidden on mobile where it doesn't render usefully */}
+        <div className="hidden sm:flex flex-1 overflow-hidden">
           <PdfViewerInnerDynamic />
+        </div>
+        <div className="sm:hidden flex flex-col items-center justify-center gap-3 py-12 px-6 text-center text-sm text-muted-foreground">
+          <p>PDF preview isn't available on mobile.<br />Download the file to view it.</p>
+          <Button onClick={handleDownload} disabled={downloading} className="cursor-pointer">
+            {downloading ? "Downloading..." : "Download PDF"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

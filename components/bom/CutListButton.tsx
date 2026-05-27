@@ -29,7 +29,7 @@ export function CutListButton({ projectId }: CutListButtonProps) {
         Cut List
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
+        <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Cut List</DialogTitle>
             <DialogDescription>

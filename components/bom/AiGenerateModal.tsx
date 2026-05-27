@@ -252,7 +252,7 @@ export function AiGenerateModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto p-6">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-y-auto p-4 sm:p-6">
         {limitReached ? (
           <>
             <DialogHeader>
@@ -354,13 +354,13 @@ export function AiGenerateModal({
                   </h3>
                   <ul className="space-y-1 text-muted-foreground">
                     {preview.lumberItems.map((item, i) => (
-                      <li key={i} className="flex justify-between gap-2">
+                      <li key={i} className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
                         <span>
                           {item.quantity}× {item.species} —{" "}
                           {item.thickness_in}" × {item.width_in}" ×{" "}
                           {item.length_ft}ft
                         </span>
-                        <span className="shrink-0 text-foreground">
+                        <span className="shrink-0 text-foreground sm:text-right">
                           ${item.price_per_unit.toFixed(2)}/
                           {item.pricing_mode === "per_bf" ? "BF" : item.pricing_mode === "per_lf" ? "LF" : "piece"}
                         </span>
@@ -379,11 +379,11 @@ export function AiGenerateModal({
                   </h3>
                   <ul className="space-y-1 text-muted-foreground">
                     {preview.hardwareItems.map((item, i) => (
-                      <li key={i} className="flex justify-between gap-2">
+                      <li key={i} className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
                         <span>
                           {item.quantity} {item.unit} — {item.description}
                         </span>
-                        <span className="shrink-0 text-foreground">
+                        <span className="shrink-0 text-foreground sm:text-right">
                           ${item.unit_cost.toFixed(2)} each
                         </span>
                       </li>
@@ -401,14 +401,14 @@ export function AiGenerateModal({
                   </h3>
                   <ul className="space-y-1 text-muted-foreground">
                     {preview.finishItems.map((item, i) => (
-                      <li key={i} className="flex justify-between gap-2">
+                      <li key={i} className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
                         <span>
                           {item.description}
                           {item.container_size
                             ? ` — ${item.amount_used ?? Math.round(item.fraction_used * item.container_size)}/${item.container_size} ${item.unit}`
                             : ` — ${Math.round(item.fraction_used * 100)}% used`}
                         </span>
-                        <span className="shrink-0 text-foreground">
+                        <span className="shrink-0 text-foreground sm:text-right">
                           ${(item.container_cost * item.fraction_used).toFixed(2)}
                         </span>
                       </li>

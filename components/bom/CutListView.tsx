@@ -75,7 +75,7 @@ function BoardLayoutView({ layout }: { layout: BoardLayout }) {
 // ─── Sheet Layout Diagram ─────────────────────────────────────────────────────
 
 function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLayout; group: StockGroup; boardMode?: boolean }) {
-  const DIAGRAM_WIDTH = 480
+  const DIAGRAM_WIDTH = '100%'
   const DIAGRAM_HEIGHT = boardMode
     ? Math.max(48, Math.min(80, Math.round((group.stockWidthIn / group.stockLengthIn) * DIAGRAM_WIDTH * 3)))
     : 200
@@ -96,7 +96,7 @@ function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLa
             <span className="text-xs text-muted-foreground">{boardMode ? 'Board' : 'Sheet'} {sheet.index}</span>
             <div
               className="relative rounded overflow-hidden border border-border bg-muted/40"
-              style={{ width: boardMode ? '100%' : DIAGRAM_WIDTH, height: DIAGRAM_HEIGHT }}
+              style={{ width: '100%', maxWidth: boardMode ? undefined : 480, height: DIAGRAM_HEIGHT }}
             >
               {/* Render strips as horizontal bands */}
               {sheet.strips.map((strip, si) => {
