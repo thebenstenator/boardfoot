@@ -138,45 +138,45 @@ function buildSheetLayout(
   stockLengthIn: number,
   kerfIn: number
 ): SheetLayout {
-  // Group by widthIn (strip rip width)
-  const widthGroups = new Map<number, CutPiece[]>()
-  for (const piece of pieces) {
-    if (!widthGroups.has(piece.widthIn)) widthGroups.set(piece.widthIn, [])
-    widthGroups.get(piece.widthIn)!.push(piece)
-  }
+  // Sort pieces: widest first, then longest first within same width.
+  // This ensures wide strips form first so narrower pieces can backfill their unused length.
+  const sorted = [...pieces].sort((a, b) => {
+    if (b.widthIn !== a.widthIn) return b.widthIn - a.widthIn
+    return b.lengthIn - a.lengthIn
+  })
 
-  // Sort width groups descending (widest strips first)
-  const sortedWidths = [...widthGroups.keys()].sort((a, b) => b - a)
-
-  // Each strip: rip once along widthIn, cut pieces along stockLengthIn
+  // Piece-level FFD: each piece tries every open strip where it fits
+  // (widthIn ≤ strip rip width AND length fits remaining space).
+  // This allows e.g. narrower dividers to share a strip with wider side panels
+  // when they are the same length, eliminating large length-waste gaps.
   type Strip = {
-    widthIn: number
+    widthIn: number  // rip width = widest piece placed in this strip
     pieces: Array<{ piece: CutPiece; offsetIn: number }>
-    wasteIn: number
+    wasteIn: number  // remaining length at end of strip
   }
 
   const allStrips: Strip[] = []
-  for (const w of sortedWidths) {
-    const piecesForWidth = [...widthGroups.get(w)!].sort((a, b) => b.lengthIn - a.lengthIn)
-    // Pack into strips of stockLengthIn
-    let currentStrip: Strip = { widthIn: w, pieces: [], wasteIn: stockLengthIn }
-    for (const piece of piecesForWidth) {
-      const spaceNeeded = piece.lengthIn + (currentStrip.pieces.length > 0 ? kerfIn : 0)
-      if (currentStrip.wasteIn >= spaceNeeded) {
-        const offset = stockLengthIn - currentStrip.wasteIn + (currentStrip.pieces.length > 0 ? kerfIn : 0)
-        currentStrip.pieces.push({ piece, offsetIn: offset })
-        currentStrip.wasteIn -= spaceNeeded
-      } else {
-        allStrips.push(currentStrip)
-        const offset = 0
-        currentStrip = {
-          widthIn: w,
-          pieces: [{ piece, offsetIn: offset }],
-          wasteIn: stockLengthIn - piece.lengthIn,
-        }
+
+  for (const piece of sorted) {
+    let placed = false
+    for (const strip of allStrips) {
+      if (piece.widthIn > strip.widthIn) continue  // piece too wide for this strip's rip
+      const spaceNeeded = piece.lengthIn + (strip.pieces.length > 0 ? kerfIn : 0)
+      if (strip.wasteIn >= spaceNeeded) {
+        const offsetIn = stockLengthIn - strip.wasteIn + (strip.pieces.length > 0 ? kerfIn : 0)
+        strip.pieces.push({ piece, offsetIn })
+        strip.wasteIn -= spaceNeeded
+        placed = true
+        break
       }
     }
-    allStrips.push(currentStrip)
+    if (!placed) {
+      allStrips.push({
+        widthIn: piece.widthIn,
+        pieces: [{ piece, offsetIn: 0 }],
+        wasteIn: stockLengthIn - piece.lengthIn,
+      })
+    }
   }
 
   // FFD bin-pack strips into sheets (along stockWidthIn).

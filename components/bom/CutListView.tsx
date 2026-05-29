@@ -117,12 +117,20 @@ function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLa
                     {strip.pieces.map(({ piece, offsetIn }, pi) => {
                       const leftPct = (offsetIn / group.stockLengthIn) * 100
                       const widthPct = (piece.lengthIn / group.stockLengthIn) * 100
+                      // Height proportional to piece width vs strip rip width.
+                      // Pieces are bottom-aligned so narrower pieces show unused width above them.
+                      const heightPct = (piece.widthIn / strip.widthIn) * 100
                       const color = COLORS[piece.colorIndex % COLORS.length]
                       return (
                         <div
                           key={pi}
-                          className={`${color} absolute h-full flex items-center justify-center overflow-hidden`}
-                          style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+                          className={`${color} absolute flex items-center justify-center overflow-hidden`}
+                          style={{
+                            left: `${leftPct}%`,
+                            width: `${widthPct}%`,
+                            height: `${heightPct}%`,
+                            bottom: 0,
+                          }}
                           title={`${piece.label} — ${piece.lengthIn.toFixed(1)}" × ${piece.widthIn.toFixed(1)}"`}
                         >
                           <span className="text-[10px] font-medium px-0.5 truncate text-white">
