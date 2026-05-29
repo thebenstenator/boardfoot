@@ -179,7 +179,9 @@ function buildSheetLayout(
     allStrips.push(currentStrip)
   }
 
-  // Bin-pack strips into sheets (along stockWidthIn)
+  // FFD bin-pack strips into sheets (along stockWidthIn).
+  // First Fit Decreasing: try every open sheet before starting a new one,
+  // so narrow strips (e.g. stretchers) backfill gaps left by wider ones.
   type Sheet = {
     index: number
     strips: Strip[]
@@ -188,25 +190,28 @@ function buildSheetLayout(
   }
 
   const sheets: Sheet[] = []
-  let currentSheet: Sheet = { index: 1, strips: [], widthUsed: 0, widthWaste: stockWidthIn }
 
   for (const strip of allStrips) {
-    const spaceNeeded = strip.widthIn + (currentSheet.strips.length > 0 ? kerfIn : 0)
-    if (currentSheet.widthWaste >= spaceNeeded) {
-      currentSheet.widthUsed += spaceNeeded
-      currentSheet.widthWaste -= spaceNeeded
-      currentSheet.strips.push(strip)
-    } else {
-      sheets.push(currentSheet)
-      currentSheet = {
+    let placed = false
+    for (const sheet of sheets) {
+      const spaceNeeded = strip.widthIn + (sheet.strips.length > 0 ? kerfIn : 0)
+      if (sheet.widthWaste >= spaceNeeded) {
+        sheet.widthUsed += spaceNeeded
+        sheet.widthWaste -= spaceNeeded
+        sheet.strips.push(strip)
+        placed = true
+        break
+      }
+    }
+    if (!placed) {
+      sheets.push({
         index: sheets.length + 1,
         strips: [strip],
         widthUsed: strip.widthIn,
         widthWaste: stockWidthIn - strip.widthIn,
-      }
+      })
     }
   }
-  if (currentSheet.strips.length > 0) sheets.push(currentSheet)
 
   // Compute waste
   let totalPiece = 0
