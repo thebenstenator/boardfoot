@@ -33,6 +33,9 @@ import {
   col,
 } from "./bomStyles";
 import { getActualToNominal } from "@/lib/calculations/nominalActual";
+import { PanelCalculatorModal } from "@/components/bom/PanelCalculatorModal";
+import type { PanelLumberResult } from "@/components/bom/PanelCalculatorModal";
+import { createClient } from "@/lib/supabase/client";
 
 interface LumberSectionProps {
   projectId: string;
@@ -61,6 +64,32 @@ export function LumberSection({ projectId }: LumberSectionProps) {
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null);
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
   const [stalePriceIds, setStalePriceIds] = useState<Set<string>>(new Set());
+  const [showPanelCalc, setShowPanelCalc] = useState(false);
+  const addLumberItem = useProjectStore((s) => s.addLumberItem);
+
+  async function handleAddPanelItem(result: PanelLumberResult) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('lumber_items')
+      .insert({
+        project_id: projectId,
+        species: '',
+        thickness_in: result.thickness_in,
+        width_in: result.width_in,
+        length_ft: result.length_ft,
+        length_unit: 'ft',
+        quantity: result.quantity,
+        pricing_mode: 'per_bf',
+        price_per_unit: 0,
+        is_reclaimed: false,
+        waste_override: null,
+        notes: '',
+        sort_order: items.length,
+      })
+      .select()
+      .single();
+    if (!error && data) addLumberItem(data as import('@/types/bom').LumberItem);
+  }
 
   function handleRemove(id: string, label: string, index: number) {
     removeItem(id);
@@ -156,19 +185,29 @@ export function LumberSection({ projectId }: LumberSectionProps) {
       <div className={bomSection}>
         <div className={bomSectionHeader}>
           <h2 className="text-lg font-semibold">Lumber</h2>
-          <Button
-            size="sm"
-            onClick={async () => {
-              await addItem();
-              setTimeout(() => {
-                const rows = document.querySelectorAll('[data-lumber-row]');
-                const last = rows[rows.length - 1];
-                (last?.querySelector('input') as HTMLInputElement)?.focus();
-              }, 0);
-            }}
-          >
-            + Add lumber
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPanelCalc(true)}
+              className="cursor-pointer"
+            >
+              Panel calc
+            </Button>
+            <Button
+              size="sm"
+              onClick={async () => {
+                await addItem();
+                setTimeout(() => {
+                  const rows = document.querySelectorAll('[data-lumber-row]');
+                  const last = rows[rows.length - 1];
+                  (last?.querySelector('input') as HTMLInputElement)?.focus();
+                }, 0);
+              }}
+            >
+              + Add lumber
+            </Button>
+          </div>
         </div>
 
         <div>
@@ -447,6 +486,11 @@ export function LumberSection({ projectId }: LumberSectionProps) {
             </div>
           </div>
         </div>
+      <PanelCalculatorModal
+        open={showPanelCalc}
+        onClose={() => setShowPanelCalc(false)}
+        onAdd={handleAddPanelItem}
+      />
     </TooltipProvider>
   );
 }
