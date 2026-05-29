@@ -38,7 +38,7 @@ export interface SheetLayout {
     index: number
     strips: Array<{
       widthIn: number       // this strip's rip width
-      pieces: Array<{ piece: CutPiece; offsetIn: number }>
+      pieces: Array<{ piece: CutPiece; offsetIn: number; widthOffsetIn: number }>
       wasteIn: number       // leftover at end of strip
     }>
     widthUsed: number       // sum of strip widths
@@ -138,53 +138,89 @@ function buildSheetLayout(
   stockLengthIn: number,
   kerfIn: number
 ): SheetLayout {
-  // Sort pieces: widest first, then longest first within same width.
-  // This ensures wide strips form first so narrower pieces can backfill their unused length.
+  // Sort pieces: widest first so wide strips form first; longest first within same width.
   const sorted = [...pieces].sort((a, b) => {
     if (b.widthIn !== a.widthIn) return b.widthIn - a.widthIn
     return b.lengthIn - a.lengthIn
   })
 
-  // Piece-level FFD: each piece tries every open strip where it fits
-  // (widthIn ≤ strip rip width AND length fits remaining space).
-  // This allows e.g. narrower dividers to share a strip with wider side panels
-  // when they are the same length, eliminating large length-waste gaps.
-  type Strip = {
-    widthIn: number  // rip width = widest piece placed in this strip
-    pieces: Array<{ piece: CutPiece; offsetIn: number }>
-    wasteIn: number  // remaining length at end of strip
+  // Each strip is divided into "columns" — slots at fixed length-offsets.
+  // Within a column, multiple pieces can be stacked side-by-side in the WIDTH dimension
+  // (sub-rip packing), as long as their widths sum to ≤ the strip's rip width.
+  // This lets e.g. 5 × 3.5" stretchers occupy the 18"-wide waste area after a 50" bottom.
+  type Column = {
+    startOffsetIn: number   // length-axis start of this column in the strip
+    maxLengthIn: number     // longest piece length in this column
+    usedWidthIn: number     // cumulative width consumed (pieces + inter-piece kerfs)
   }
 
-  const allStrips: Strip[] = []
+  type StripInternal = {
+    widthIn: number         // rip width (= widest piece in strip)
+    columns: Column[]
+    pieces: Array<{ piece: CutPiece; offsetIn: number; widthOffsetIn: number }>
+    endIn: number           // length-axis end of the last column
+  }
+
+  const stripList: StripInternal[] = []
 
   for (const piece of sorted) {
     let placed = false
-    for (const strip of allStrips) {
-      if (piece.widthIn > strip.widthIn) continue  // piece too wide for this strip's rip
-      const spaceNeeded = piece.lengthIn + (strip.pieces.length > 0 ? kerfIn : 0)
-      if (strip.wasteIn >= spaceNeeded) {
-        const offsetIn = stockLengthIn - strip.wasteIn + (strip.pieces.length > 0 ? kerfIn : 0)
-        strip.pieces.push({ piece, offsetIn })
-        strip.wasteIn -= spaceNeeded
+
+    for (const strip of stripList) {
+      if (piece.widthIn > strip.widthIn) continue  // piece too wide for this rip
+
+      // 1. Try to sub-rip into an existing column (same length offset, stacked by width).
+      //    Only valid if the piece doesn't exceed the column's committed length.
+      for (const col of strip.columns) {
+        if (piece.lengthIn > col.maxLengthIn) continue
+        const spaceNeeded = col.usedWidthIn > 0 ? kerfIn + piece.widthIn : piece.widthIn
+        if (col.usedWidthIn + spaceNeeded <= strip.widthIn + 0.001) {
+          const widthOffsetIn = col.usedWidthIn + (col.usedWidthIn > 0 ? kerfIn : 0)
+          strip.pieces.push({ piece, offsetIn: col.startOffsetIn, widthOffsetIn })
+          col.usedWidthIn += spaceNeeded
+          placed = true
+          break
+        }
+      }
+      if (placed) break
+
+      // 2. Try to start a new column at the end of the strip.
+      const kerfBefore = strip.columns.length > 0 ? kerfIn : 0
+      const newColStart = strip.endIn + kerfBefore
+      if (newColStart + piece.lengthIn <= stockLengthIn + 0.001) {
+        strip.columns.push({
+          startOffsetIn: newColStart,
+          maxLengthIn: piece.lengthIn,
+          usedWidthIn: piece.widthIn,
+        })
+        strip.pieces.push({ piece, offsetIn: newColStart, widthOffsetIn: 0 })
+        strip.endIn = newColStart + piece.lengthIn
         placed = true
         break
       }
     }
+
     if (!placed) {
-      allStrips.push({
+      stripList.push({
         widthIn: piece.widthIn,
-        pieces: [{ piece, offsetIn: 0 }],
-        wasteIn: stockLengthIn - piece.lengthIn,
+        columns: [{ startOffsetIn: 0, maxLengthIn: piece.lengthIn, usedWidthIn: piece.widthIn }],
+        pieces: [{ piece, offsetIn: 0, widthOffsetIn: 0 }],
+        endIn: piece.lengthIn,
       })
     }
   }
 
+  // Convert internal strips to external format
+  const allStrips = stripList.map(sd => ({
+    widthIn: sd.widthIn,
+    pieces: sd.pieces,
+    wasteIn: stockLengthIn - sd.endIn,
+  }))
+
   // FFD bin-pack strips into sheets (along stockWidthIn).
-  // First Fit Decreasing: try every open sheet before starting a new one,
-  // so narrow strips (e.g. stretchers) backfill gaps left by wider ones.
   type Sheet = {
     index: number
-    strips: Strip[]
+    strips: typeof allStrips
     widthUsed: number
     widthWaste: number
   }

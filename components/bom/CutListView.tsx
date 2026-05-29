@@ -114,12 +114,14 @@ function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLa
                     style={{ top: topOffset, height: stripHeight }}
                   >
                     {/* Pieces within this strip */}
-                    {strip.pieces.map(({ piece, offsetIn }, pi) => {
+                    {strip.pieces.map(({ piece, offsetIn, widthOffsetIn }, pi) => {
                       const leftPct = (offsetIn / group.stockLengthIn) * 100
                       const widthPct = (piece.lengthIn / group.stockLengthIn) * 100
-                      // Height proportional to piece width vs strip rip width.
-                      // Pieces are bottom-aligned so narrower pieces show unused width above them.
+                      // Height and top position both proportional to the strip's rip width.
+                      // Pieces are top-aligned within their width-offset so sub-rip stacks
+                      // render as thin bands packed from the top of the strip band.
                       const heightPct = (piece.widthIn / strip.widthIn) * 100
+                      const topPct = (widthOffsetIn / strip.widthIn) * 100
                       const color = COLORS[piece.colorIndex % COLORS.length]
                       return (
                         <div
@@ -129,7 +131,7 @@ function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLa
                             left: `${leftPct}%`,
                             width: `${widthPct}%`,
                             height: `${heightPct}%`,
-                            bottom: 0,
+                            top: `${topPct}%`,
                           }}
                           title={`${piece.label} — ${piece.lengthIn.toFixed(1)}" × ${piece.widthIn.toFixed(1)}"`}
                         >
