@@ -88,8 +88,8 @@ export function PanelCalculatorModal({
   onAdd,
 }: PanelCalculatorModalProps) {
   const [finThIn, setFinThIn] = useState('1.5')
-  const [finWIn, setFinWIn]   = useState('20')
-  const [finLIn, setFinLIn]   = useState('103')
+  const [finWIn, setFinWIn]   = useState('24')
+  const [finLIn, setFinLIn]   = useState('60')
   const [panelCount, setPanelCount]   = useState('1')
   const [boardWidthIn, setBoardWidthIn] = useState('6')
   const [wastePct, setWastePct]         = useState('20')
