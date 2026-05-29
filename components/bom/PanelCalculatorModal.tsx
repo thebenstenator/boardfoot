@@ -14,9 +14,9 @@ import { Button } from '@/components/ui/button'
 // Standard rough lumber sizes (quarters system).
 // roughIn = nominal rough thickness in inches.
 // maxFinIn = comfortable finished thickness after jointing/planing both faces.
+// 5/4 omitted — uncommon at most hardwood dealers; yards typically stock even quarters.
 const ROUGH_SIZES = [
   { label: '4/4',  roughIn: 1.0,  maxFinIn: 0.75  },
-  { label: '5/4',  roughIn: 1.25, maxFinIn: 1.0   },
   { label: '6/4',  roughIn: 1.5,  maxFinIn: 1.25  },
   { label: '8/4',  roughIn: 2.0,  maxFinIn: 1.75  },
   { label: '10/4', roughIn: 2.5,  maxFinIn: 2.25  },
@@ -46,10 +46,11 @@ function calcPanel(
     ROUGH_SIZES[ROUGH_SIZES.length - 1]
 
   // Width: add user-specified waste (jointing, edge defects, random-width off-fall).
-  // Length: add 7% fixed for snipe / end-grain checks / rough-end trimming.
+  // Length: add a flat 4" (2" trim per end) for snipe and end-grain checks.
+  // A percentage would compound unreasonably on long boards.
   const widthFactor = 1 + wastePct / 100
   const roughWidthTotalIn = finWIn * widthFactor * panelCount
-  const roughLengthIn = finLIn * 1.07
+  const roughLengthIn = finLIn + 4
   const roughLengthFt = roughLengthIn / 12
 
   // Boards needed = ceil(total rough width ÷ board width).
@@ -227,7 +228,7 @@ export function PanelCalculatorModal({
 
               <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
                 Width includes {wastePct}% for jointing & random-width off-fall.
-                Length adds 7% for snipe & end-grain trimming.
+                Length adds a flat 4&Prime; (2&Prime; per end) for snipe & end-grain trimming — verify board ends at the yard.
                 {result.stock.label === '8/4' && Number(finThIn) <= 1.5 &&
                   ' 8/4 gives you ~¼" of room to flatten and plane to your finished thickness.'}
               </p>
