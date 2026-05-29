@@ -58,13 +58,8 @@ export function CostSummary() {
           Materials
         </p>
         <SummaryRow
-          label="Lumber (net)"
+          label="Lumber"
           value={formatCurrency(totals.lumber.netCost)}
-        />
-        <SummaryRow
-          label={`Lumber (adjusted for ${Math.round((project?.waste_factor ?? 0.15) * 100)}% waste)`}
-          value={formatCurrency(totals.lumber.adjustedCost)}
-          highlight
         />
         {totals.lumber.reclaimedSavings > 0 && (
           <>

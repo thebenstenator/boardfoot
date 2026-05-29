@@ -127,7 +127,7 @@ export function calculateProjectTotals(
   const laborTotal = calcLaborTotal(labor, profile)
   const overheadShare = excludeOverhead ? 0 : calcOverheadShare(profile)
 
-  const subtotal = lumber.adjustedCost + hardwareTotal + finishTotal
+  const subtotal = lumber.netCost + hardwareTotal + finishTotal
   const grandTotal = subtotal + laborTotal + overheadShare
   const withTax = grandTotal * (1 + profile.tax_rate)
 

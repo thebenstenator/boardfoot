@@ -6,7 +6,6 @@ import {
   calculateBoardFeetFlexible,
   convertLFtoBFPrice,
 } from "@/lib/calculations/boardFeet";
-import { applyWasteFactor } from "@/lib/calculations/wasteFactor";
 import { useProjectStore } from "@/store/projectStore";
 import { EditableCell, CurrencyCell } from "@/components/bom/BomCells";
 import { SpeciesInput } from "@/components/bom/SpeciesInput";
@@ -19,12 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   bomSection,
   bomSectionHeader,
@@ -104,11 +97,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
     undoRemove(undoState.id);
     setUndoState(null);
   }
-  const project = useProjectStore((state) => state.project);
   const totals = useProjectStore((state) => state.totals);
-
-  const wasteFactor = project?.waste_factor ?? 0.15;
-  const wastePercent = Math.round(wasteFactor * 100);
 
   const TAB_OFFSET = 100;
   const TAB_STOPS_PER_ROW = 9;
@@ -172,17 +161,11 @@ export function LumberSection({ projectId }: LumberSectionProps) {
     return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
   }
 
-  // Waste footer calculations
   const netBF = totals.lumber.boardFeetNet;
-  const adjustedBF = applyWasteFactor(netBF, wasteFactor);
-  const extraBF = adjustedBF - netBF;
   const netCost = totals.lumber.netCost;
-  const adjustedCost = totals.lumber.adjustedCost;
-  const extraCost = adjustedCost - netCost;
 
   return (
-    <TooltipProvider>
-      <div className={bomSection}>
+    <div className={bomSection}>
         <div className={bomSectionHeader}>
           <h2 className="text-lg font-semibold">Lumber</h2>
           <div className="flex items-center gap-2">
@@ -453,30 +436,11 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                   <span className={col.last} /><span className={col.delete} />
                 </div>
 
-                {/* Waste footer */}
+                {/* BF footer */}
                 <div className="flex justify-start sm:justify-end items-center gap-6 text-sm pt-3">
                   <span className="text-muted-foreground">
                     Net: {netBF.toFixed(2)} BF — {formatCurrency(netCost)}
                   </span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="font-medium cursor-help border-b border-dashed border-muted-foreground">
-                        Buy {adjustedBF.toFixed(2)} BF (+{extraBF.toFixed(2)}{" "}
-                        BF) for {wastePercent}% waste —{" "}
-                        {formatCurrency(adjustedCost)} (+
-                        {formatCurrency(extraCost)})
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>
-                        To end up with {netBF.toFixed(2)} BF of usable material
-                        after {wastePercent}% waste, you need to purchase{" "}
-                        {adjustedBF.toFixed(2)} BF. That's {extraBF.toFixed(2)}{" "}
-                        extra BF costing an additional{" "}
-                        {formatCurrency(extraCost)}.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
                 </div>
                 <p className="text-[10px] text-muted-foreground/50 text-right mt-1">
                   BF totals include $/BF and $/LF items only — $/piece items are excluded.
@@ -485,12 +449,11 @@ export function LumberSection({ projectId }: LumberSectionProps) {
               </div>
             </div>
           </div>
-        </div>
       <PanelCalculatorModal
         open={showPanelCalc}
         onClose={() => setShowPanelCalc(false)}
         onAdd={handleAddPanelItem}
       />
-    </TooltipProvider>
+    </div>
   );
 }
