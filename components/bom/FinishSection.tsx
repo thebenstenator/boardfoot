@@ -151,9 +151,9 @@ export function FinishSection({ projectId }: FinishSectionProps) {
               <div className={bomHeader}>
                 <span className={col.first}>Description</span>
                 <span className={col.lg}>Container size</span>
+                <span className={col.unit}>Unit</span>
                 <span className={col.lg}>Container cost</span>
                 <span className={col.lg}>Amount used</span>
-                <span className={col.unit}>Unit</span>
                 <span className={col.last}>Total</span>
                 <span className={col.delete}></span>
               </div>
@@ -196,23 +196,6 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                         tabIndex={baseTab + 1}
                       />
                     </div>
-                    <div className={col.lg}>
-                      <CurrencyCell
-                        value={item.container_cost}
-                        onChange={(v) =>
-                          handleUpdate(item.id, "container_cost", v)
-                        }
-                        tabIndex={baseTab + 2}
-                      />
-                    </div>
-                    <div className={col.lg}>
-                      <EditableCell
-                        value={item.amount_used ?? ""}
-                        onChange={(v) => handleAmountUpdate(item, v)}
-                        type="number"
-                        tabIndex={baseTab + 3}
-                      />
-                    </div>
                     <div className={col.unit}>
                       <Select
                         value={item.unit}
@@ -229,6 +212,23 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className={col.lg}>
+                      <CurrencyCell
+                        value={item.container_cost}
+                        onChange={(v) =>
+                          handleUpdate(item.id, "container_cost", v)
+                        }
+                        tabIndex={baseTab + 2}
+                      />
+                    </div>
+                    <div className={col.lg}>
+                      <EditableCell
+                        value={item.amount_used ?? ""}
+                        onChange={(v) => handleAmountUpdate(item, v)}
+                        type="number"
+                        tabIndex={baseTab + 3}
+                      />
                     </div>
                     <div className={`${col.last} text-sm`}>
                       {formatCurrency(lineCost)}
@@ -279,8 +279,8 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                   hover:bg-muted/20 cursor-pointer select-none transition-colors"
               >
                 <span className={col.first}>+ Add consumable</span>
-                <span className={col.lg} /><span className={col.lg} />
                 <span className={col.lg} /><span className={col.unit} />
+                <span className={col.lg} /><span className={col.lg} />
                 <span className={col.last} /><span className={col.delete} />
               </div>
 
