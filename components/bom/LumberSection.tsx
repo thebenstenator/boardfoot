@@ -97,8 +97,6 @@ export function LumberSection({ projectId }: LumberSectionProps) {
     undoRemove(undoState.id);
     setUndoState(null);
   }
-  const totals = useProjectStore((state) => state.totals);
-
   const TAB_OFFSET = 100;
   const TAB_STOPS_PER_ROW = 9;
 
@@ -160,9 +158,6 @@ export function LumberSection({ projectId }: LumberSectionProps) {
   function formatCurrency(n: number) {
     return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
   }
-
-  const netBF = totals.lumber.boardFeetNet;
-  const netCost = totals.lumber.netCost;
 
   return (
     <div className={bomSection}>
@@ -436,15 +431,6 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                   <span className={col.last} /><span className={col.delete} />
                 </div>
 
-                {/* BF footer */}
-                <div className="flex justify-start sm:justify-end items-center gap-6 text-sm pt-3">
-                  <span className="text-muted-foreground">
-                    Net: {netBF.toFixed(2)} BF — {formatCurrency(netCost)}
-                  </span>
-                </div>
-                <p className="text-[10px] text-muted-foreground/50 text-right mt-1">
-                  BF totals include $/BF and $/LF items only — $/piece items are excluded.
-                </p>
                 </>}
               </div>
             </div>
