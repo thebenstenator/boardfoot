@@ -159,7 +159,7 @@ function DashboardContent() {
           <h1 className="text-2xl font-bold shrink-0">Your Projects</h1>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleOpenAiModal} className="cursor-pointer">
-              ✦ <span className="hidden sm:inline">Generate with </span>AI
+              ✦ Generate<span className="hidden sm:inline"> with AI</span>
             </Button>
             <Button size="sm" onClick={handleCreateProject} className="cursor-pointer">
               + <span className="hidden sm:inline">New </span>Project
