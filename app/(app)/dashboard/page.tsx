@@ -205,7 +205,7 @@ function DashboardContent() {
                     className="flex-1 min-w-0"
                   >
                     <div className="flex items-center justify-between gap-4">
-                      <span className="font-medium truncate">{project.name}</span>
+                      <span className="font-medium truncate min-w-0">{project.name}</span>
                       <span className="text-sm text-muted-foreground shrink-0">
                         {new Date(project.updated_at).toLocaleDateString()}
                       </span>
