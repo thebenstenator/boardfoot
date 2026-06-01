@@ -66,7 +66,6 @@ export function buildShoppingList(
   lumberItems: LumberItem[],
   hardwareItems: HardwareItem[],
   finishItems: FinishItem[],
-  wasteFactor: number,
 ): ShoppingList {
   const list: ShoppingList = {
     lumberYard: [],
@@ -78,12 +77,11 @@ export function buildShoppingList(
   // Sort lumber by store type
   for (const item of lumberItems) {
     if (item.is_reclaimed) continue  // already on-hand
-    const adjustedQty = item.quantity / (1 - wasteFactor);
     const lengthFt =
       item.length_unit === "in" ? item.length_ft / 12 : item.length_ft;
     const bfPerPiece = (item.thickness_in * item.width_in * lengthFt) / 12;
-    const totalBF = bfPerPiece * adjustedQty;
-    const totalLF = lengthFt * adjustedQty;
+    const totalBF = bfPerPiece * item.quantity;
+    const totalLF = lengthFt * item.quantity;
 
     let lineCost: number;
     let quantityDisplay: string;

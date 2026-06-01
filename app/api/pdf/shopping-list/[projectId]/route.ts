@@ -72,7 +72,6 @@ export async function GET(
     (lumberItems ?? []) as LumberItem[],
     (hardwareItems ?? []) as HardwareItem[],
     (finishItems ?? []) as FinishItem[],
-    project.waste_factor,
   );
 
   const pdfBuffer = await renderToBuffer(

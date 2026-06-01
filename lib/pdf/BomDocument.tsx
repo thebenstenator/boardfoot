@@ -167,11 +167,9 @@ const finishCols = {
 
 function LumberSection({
   items,
-  wasteFactor,
   totals,
 }: {
   items: LumberItem[];
-  wasteFactor: number;
   totals: ProjectTotals;
 }) {
   if (items.length === 0) return null;
@@ -253,17 +251,6 @@ function LumberSection({
         );
       })}
 
-      {/* Footer */}
-      <View style={styles.sectionTotal}>
-        <Text style={{ ...styles.muted, marginRight: 16 }}>
-          Net: {totals.lumber.boardFeetNet.toFixed(2)} BF —{" "}
-          {currency(totals.lumber.netCost)}
-        </Text>
-        <Text style={styles.sectionTotalText}>
-          Buy {totals.lumber.boardFeetAdjusted.toFixed(2)} BF for{" "}
-          {pct(wasteFactor)} waste — {currency(totals.lumber.adjustedCost)}
-        </Text>
-      </View>
     </View>
   );
 }
@@ -405,12 +392,10 @@ function FinishSection({
 function CostSummarySection({
   totals,
   profile,
-  wasteFactor,
   isPro,
 }: {
   totals: ProjectTotals;
   profile: UserProfile;
-  wasteFactor: number;
   isPro: boolean;
 }) {
   const targetMargin = 0.3;
@@ -420,12 +405,8 @@ function CostSummarySection({
       <Text style={styles.sectionTitle}>Cost Summary</Text>
 
       <View style={styles.summaryRow}>
-        <Text>Lumber (net)</Text>
+        <Text>Lumber</Text>
         <Text>{currency(totals.lumber.netCost)}</Text>
-      </View>
-      <View style={styles.summaryRow}>
-        <Text>Lumber (adjusted for {pct(wasteFactor)} waste)</Text>
-        <Text>{currency(totals.lumber.adjustedCost)}</Text>
       </View>
       <View style={styles.summaryRow}>
         <Text>Hardware</Text>
@@ -530,7 +511,6 @@ export function BomDocument({
         {/* BOM Sections */}
         <LumberSection
           items={lumberItems}
-          wasteFactor={project.waste_factor}
           totals={totals}
         />
         <HardwareSection items={hardwareItems} totals={totals} />
@@ -541,7 +521,6 @@ export function BomDocument({
         <CostSummarySection
           totals={totals}
           profile={profile}
-          wasteFactor={project.waste_factor}
           isPro={isPro}
         />
 
