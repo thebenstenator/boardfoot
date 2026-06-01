@@ -22,6 +22,7 @@ function DashboardContent() {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -106,6 +107,8 @@ function DashboardContent() {
     (p) => !search || p.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const confirmDeleteProject = projects.find((p) => p.id === confirmDeleteId);
+
   return (
     <>
       {showUpgrade && (
@@ -119,6 +122,37 @@ function DashboardContent() {
         onClose={() => setShowAiModal(false)}
         onCreated={(id) => router.push(`/projects/${id}`)}
       />
+
+      {/* Delete confirmation modal */}
+      {confirmDeleteId && confirmDeleteProject && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmDeleteId(null); }}
+        >
+          <div className="bg-background border rounded-lg shadow-lg w-full max-w-sm mx-4 p-6 space-y-4">
+            <h2 className="font-semibold text-base">Delete project?</h2>
+            <p className="text-sm text-muted-foreground">
+              &ldquo;{confirmDeleteProject.name}&rdquo; will be permanently deleted. This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(null)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={deletingId === confirmDeleteId}
+                onClick={() => {
+                  handleDelete(confirmDeleteId);
+                  setConfirmDeleteId(null);
+                }}
+              >
+                {deletingId === confirmDeleteId ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -180,32 +214,45 @@ function DashboardContent() {
                 )}
 
                 {renamingId !== project.id && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <>
+                    {/* Mobile: trash icon only, always visible */}
                     <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setRenameDraft(project.name);
-                        setRenamingId(project.id);
-                      }}
-                      aria-label={`Rename ${project.name}`}
-                      className="text-xs text-muted-foreground hover:text-foreground px-1.5 py-1 rounded hover:bg-accent focus:outline-none"
-                    >
-                      Rename
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (confirm(`Delete "${project.name}"? This cannot be undone.`)) {
-                          handleDelete(project.id);
-                        }
-                      }}
+                      onClick={(e) => { e.preventDefault(); setConfirmDeleteId(project.id); }}
                       disabled={deletingId === project.id}
                       aria-label={`Delete ${project.name}`}
-                      className="text-xs text-muted-foreground hover:text-destructive px-1.5 py-1 rounded hover:bg-accent focus:outline-none"
+                      className="sm:hidden shrink-0 text-destructive/70 hover:text-destructive p-1 rounded focus:outline-none"
                     >
-                      Delete
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6l-1 14H6L5 6" />
+                        <path d="M10 11v6M14 11v6" />
+                        <path d="M9 6V4h6v2" />
+                      </svg>
                     </button>
-                  </div>
+
+                    {/* Desktop: rename + delete on hover */}
+                    <div className="hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setRenameDraft(project.name);
+                          setRenamingId(project.id);
+                        }}
+                        aria-label={`Rename ${project.name}`}
+                        className="text-xs text-muted-foreground hover:text-foreground px-1.5 py-1 rounded hover:bg-accent focus:outline-none"
+                      >
+                        Rename
+                      </button>
+                      <button
+                        onClick={(e) => { e.preventDefault(); setConfirmDeleteId(project.id); }}
+                        disabled={deletingId === project.id}
+                        aria-label={`Delete ${project.name}`}
+                        className="text-xs text-muted-foreground hover:text-destructive px-1.5 py-1 rounded hover:bg-accent focus:outline-none"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             ))}
