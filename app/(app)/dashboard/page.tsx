@@ -155,14 +155,14 @@ function DashboardContent() {
       )}
 
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Your Projects</h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-2xl font-bold shrink-0">Your Projects</h1>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleOpenAiModal} className="cursor-pointer">
-              ✦ Generate with AI
+            <Button variant="outline" size="sm" onClick={handleOpenAiModal} className="cursor-pointer">
+              ✦ <span className="hidden sm:inline">Generate with </span>AI
             </Button>
-            <Button onClick={handleCreateProject} className="cursor-pointer">
-              + New Project
+            <Button size="sm" onClick={handleCreateProject} className="cursor-pointer">
+              + <span className="hidden sm:inline">New </span>Project
             </Button>
           </div>
         </div>
@@ -185,7 +185,7 @@ function DashboardContent() {
             {filtered.map((project) => (
               <div
                 key={project.id}
-                className="group flex items-center gap-2 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                className="group flex items-center gap-2 p-4 border rounded-lg hover:bg-accent/50 transition-colors overflow-hidden"
               >
                 {renamingId === project.id ? (
                   <input
