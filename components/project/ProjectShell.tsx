@@ -13,13 +13,25 @@ import { ShoppingListButton } from "@/components/bom/ShoppingListbutton";
 import { PhotoGallery } from "@/components/project/PhotoGallery";
 import { CutListButton } from "@/components/bom/CutListButton";
 
+import type { Project, LumberItem, HardwareItem, FinishItem, CutPart, ProjectLabor } from "@/types/bom";
+
+interface InitialData {
+  project: Project;
+  lumberItems: LumberItem[];
+  hardwareItems: HardwareItem[];
+  finishItems: FinishItem[];
+  cutParts: CutPart[];
+  labor: ProjectLabor | null;
+}
+
 interface ProjectShellProps {
   projectId: string;
   userId: string;
+  initialData?: InitialData;
 }
 
-export function ProjectShell({ projectId, userId }: ProjectShellProps) {
-  const { loadProject, project, isLoading, setProject, passSavingsToCustomer, setPassSavingsToCustomer } = useProjectStore();
+export function ProjectShell({ projectId, userId, initialData }: ProjectShellProps) {
+  const { loadProject, initializeProject, project, isLoading, setProject, passSavingsToCustomer, setPassSavingsToCustomer } = useProjectStore();
   const hasReclaimed = useProjectStore((state) => state.lumberItems.some((i) => i.is_reclaimed));
   const pendingSaves = useProjectStore((state) => state.pendingSaves);
   const totals = useProjectStore((state) => state.totals);
@@ -33,8 +45,12 @@ export function ProjectShell({ projectId, userId }: ProjectShellProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    loadProject(projectId);
-  }, [projectId, loadProject]);
+    if (initialData) {
+      initializeProject(initialData);
+    } else {
+      loadProject(projectId);
+    }
+  }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Reset dimension inputs when project changes (can't reverse-calculate L×W)

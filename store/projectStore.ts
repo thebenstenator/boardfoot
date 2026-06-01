@@ -74,6 +74,16 @@ interface ProjectStore {
 
   setLabor: (labor: ProjectLabor) => void
 
+  // Seed store from server-prefetched data (no Supabase calls)
+  initializeProject: (data: {
+    project: Project
+    lumberItems: LumberItem[]
+    hardwareItems: HardwareItem[]
+    finishItems: FinishItem[]
+    cutParts: CutPart[]
+    labor: ProjectLabor | null
+  }) => void
+
   // Load all project data from Supabase
   loadProject: (projectId: string) => Promise<void>
 }
@@ -392,6 +402,34 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.passSavingsToCustomer,
         state.excludeOverhead
       ),
+    })
+  },
+
+  initializeProject: (data) => {
+    const state = get()
+    const { project, lumberItems, hardwareItems, finishItems, cutParts, labor } = data
+    const passSavings = (project as Project).pass_reclaimed_to_customer ?? false
+    const excludeOverhead = (project as Project).exclude_overhead ?? false
+    set({
+      project,
+      lumberItems,
+      hardwareItems,
+      finishItems,
+      cutParts,
+      labor,
+      passSavingsToCustomer: passSavings,
+      excludeOverhead,
+      totals: computeTotals(
+        lumberItems,
+        hardwareItems,
+        finishItems,
+        labor,
+        state.profile,
+        project.waste_factor,
+        passSavings,
+        excludeOverhead
+      ),
+      isLoading: false,
     })
   },
 
