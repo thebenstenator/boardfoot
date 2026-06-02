@@ -196,11 +196,19 @@ export function CutListView({ projectId }: CutListViewProps) {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
+  function getStockLabel(item: CutPart) {
+    if (!item.lumber_item_id) return 'Manual'
+    const li = lumberItems.find(l => l.id === item.lumber_item_id)
+    if (!li) return ''
+    return li.species?.trim() ? li.species : `${li.thickness_in}" × ${li.width_in}"`
+  }
+
   const displayItems = sort === null
     ? [...items].sort((a, b) => a.sort_order - b.sort_order)
     : [...items].sort((a, b) => {
         const v = sort.dir === 'asc' ? 1 : -1
         switch (sort.col) {
+          case 'stock': return getStockLabel(a).localeCompare(getStockLabel(b)) * v
           case 'label': return (a.label || '').localeCompare(b.label || '') * v
           case 'width': return (a.width_in - b.width_in) * v
           case 'length': return (a.length_in - b.length_in) * v
@@ -287,7 +295,9 @@ export function CutListView({ projectId }: CutListViewProps) {
         <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
           <div className="min-w-[700px] sm:min-w-0">
             <div className={bomHeader}>
-              <span className={col.md}>Stock</span>
+              <span className={col.md}>
+                <SortableHeader label="Stock" column="stock" sort={sort} onSort={handleSort} />
+              </span>
               <span className={col.lg}>
                 <SortableHeader label="Part name" column="label" sort={sort} onSort={handleSort} />
               </span>
