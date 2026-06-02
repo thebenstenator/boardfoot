@@ -107,10 +107,13 @@ export async function GET(
     }),
   );
 
+  // LOW: Strip characters that could break Content-Disposition header parsing.
+  const safeName = project.name.replace(/[^\w\s\-(). ]/g, '').trim() || 'project';
+
   return new Response(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${project.name}.pdf"`,
+      "Content-Disposition": `inline; filename="${safeName}.pdf"`,
     },
   });
 }

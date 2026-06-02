@@ -61,6 +61,35 @@ export async function POST(request: Request) {
       if (error) console.error("Failed to revert subscription tier:", error);
       break;
     }
+
+    // LOW: Billing state coverage — these events can leave subscription status
+    // inconsistent if not handled.
+
+    case "invoice.payment_failed": {
+      // Stripe's dunning process handles retries and eventual cancellation;
+      // subscription.updated will fire when the status changes to past_due or
+      // canceled. Log here for observability.
+      const invoice = event.data.object as Stripe.Invoice;
+      console.warn(
+        "Payment failed — customer:",
+        invoice.customer,
+        "invoice:",
+        invoice.id
+      );
+      break;
+    }
+
+    case "customer.deleted": {
+      // Customer was deleted in Stripe — clear the association and revoke access.
+      const customer = event.data.object as Stripe.Customer;
+      const { error } = await supabase
+        .from("profiles")
+        .update({ subscription_tier: "free", stripe_customer_id: null })
+        .eq("stripe_customer_id", customer.id);
+
+      if (error) console.error("Failed to handle customer deletion:", error);
+      break;
+    }
   }
 
   return NextResponse.json({ received: true });

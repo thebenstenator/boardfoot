@@ -37,6 +37,8 @@ Output ONLY valid JSON in this exact shape, with no markdown or explanation:
   "finishItems": [{ "description": string, "container_size": number, "container_cost": number, "amount_used": number, "fraction_used": number, "unit": string }]
 }`;
 
+const MAX_PROMPT_LENGTH = 5000;
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -48,27 +50,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("subscription_tier, ai_generations_used")
-      .eq("id", user.id)
-      .single();
-
-    const isFree = profile?.subscription_tier !== "pro";
-    const generationsUsed = profile?.ai_generations_used ?? 0;
-
-    if (isFree && generationsUsed >= 5) {
-      return NextResponse.json({ error: "limit_reached" }, { status: 403 });
-    }
-
     const body = await request.json();
     const { prompt } = body as { prompt: string; projectId?: string };
 
-    if (!prompt) {
+    if (!prompt || typeof prompt !== "string") {
       return NextResponse.json(
         { error: "prompt is required" },
         { status: 400 }
       );
+    }
+
+    // MEDIUM: Reject oversized prompts before touching Claude or the DB.
+    if (prompt.length > MAX_PROMPT_LENGTH) {
+      return NextResponse.json(
+        { error: `Prompt too long (max ${MAX_PROMPT_LENGTH} characters)` },
+        { status: 400 }
+      );
+    }
+
+    // HIGH: Atomic check-and-increment — prevents concurrent requests from
+    // bypassing the free-tier quota by racing the read-then-write pattern.
+    const { data: allowed, error: rpcError } = await supabase.rpc(
+      "try_increment_ai_generation",
+      { user_uuid: user.id }
+    );
+
+    if (rpcError) {
+      console.error("AI quota RPC failed:", rpcError);
+      return NextResponse.json({ error: "Generation failed" }, { status: 500 });
+    }
+
+    if (!allowed) {
+      return NextResponse.json({ error: "limit_reached" }, { status: 403 });
     }
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -94,10 +107,12 @@ export async function POST(request: Request) {
     }
 
     let jsonText = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-    // Extract just the JSON object in case there's any surrounding text
-    const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
-    if (jsonMatch) jsonText = jsonMatch[0]
-    const parsed = JSON.parse(jsonText) as {
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) jsonText = jsonMatch[0];
+
+    // LOW: Catch malformed JSON from the model rather than letting it bubble
+    // up as an unhandled 500.
+    let parsed: {
       projectName: string;
       lumberItems: Array<{
         species: string;
@@ -124,11 +139,14 @@ export async function POST(request: Request) {
       }>;
     };
 
-    if (isFree) {
-      await supabase
-        .from("profiles")
-        .update({ ai_generations_used: generationsUsed + 1 })
-        .eq("id", user.id);
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch {
+      console.error("AI returned unparseable JSON:", jsonText.slice(0, 200));
+      return NextResponse.json(
+        { error: "Generation failed: invalid response from model" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({

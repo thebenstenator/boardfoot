@@ -78,26 +78,51 @@ export async function POST(request: Request) {
   // Copy line items
   const insertPromises: Promise<unknown>[] = []
 
+  // LOW: Explicit allowlists rather than ...rest so new columns (admin flags,
+  // audit fields, etc.) are never silently copied to cloned projects.
   if (lumberItems && lumberItems.length > 0) {
-    const copies = lumberItems.map(({ id: _id, project_id: _pid, ...rest }) => ({
-      ...rest,
+    const copies = lumberItems.map((item) => ({
       project_id: newProject.id,
+      species: item.species,
+      thickness_in: item.thickness_in,
+      width_in: item.width_in,
+      length_ft: item.length_ft,
+      length_unit: item.length_unit,
+      quantity: item.quantity,
+      pricing_mode: item.pricing_mode,
+      price_per_unit: item.price_per_unit,
+      is_reclaimed: item.is_reclaimed,
+      waste_override: item.waste_override,
+      notes: item.notes,
+      sort_order: item.sort_order,
     }))
     insertPromises.push(Promise.resolve(supabase.from('lumber_items').insert(copies)))
   }
 
   if (hardwareItems && hardwareItems.length > 0) {
-    const copies = hardwareItems.map(({ id: _id, project_id: _pid, ...rest }) => ({
-      ...rest,
+    const copies = hardwareItems.map((item) => ({
       project_id: newProject.id,
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      unit_cost: item.unit_cost,
+      notes: item.notes,
+      sort_order: item.sort_order,
     }))
     insertPromises.push(Promise.resolve(supabase.from('hardware_items').insert(copies)))
   }
 
   if (finishItems && finishItems.length > 0) {
-    const copies = finishItems.map(({ id: _id, project_id: _pid, ...rest }) => ({
-      ...rest,
+    const copies = finishItems.map((item) => ({
       project_id: newProject.id,
+      description: item.description,
+      container_cost: item.container_cost,
+      container_size: item.container_size,
+      amount_used: item.amount_used,
+      fraction_used: item.fraction_used,
+      unit: item.unit,
+      notes: item.notes,
+      sort_order: item.sort_order,
     }))
     insertPromises.push(Promise.resolve(supabase.from('finish_items').insert(copies)))
   }
