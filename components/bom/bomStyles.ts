@@ -7,6 +7,7 @@ export const bomSectionHeader = "flex items-center justify-between";
 export const col = {
   first: "w-[15%] sm:w-[15%] shrink-0 min-w-0",
   last: "w-20 text-right shrink-0",
+  reorder: "w-5 shrink-0",
   delete: "w-4 shrink-0",
   sm: "flex-1 min-w-0",
   md: "flex-1 min-w-0",

@@ -6,7 +6,7 @@ import { useProjectStore } from '@/store/projectStore'
 import { buildCutList } from '@/lib/calculations/cutList'
 import type { BoardLayout, SheetLayout, CutPiece, StockGroup } from '@/lib/calculations/cutList'
 import { Button } from '@/components/ui/button'
-import { EditableCell, DescriptionCell } from '@/components/bom/BomCells'
+import { EditableCell, DescriptionCell, SortableHeader, ReorderButtons, type SortState } from '@/components/bom/BomCells'
 import { bomRow, bomHeader, col } from '@/components/bom/bomStyles'
 import type { CutPart } from '@/types/bom'
 
@@ -184,11 +184,12 @@ function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLa
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function CutListView({ projectId }: CutListViewProps) {
-  const { items, addItem, updateItem, removeItem, undoRemove } = useCutParts(projectId)
+  const { items, addItem, updateItem, removeItem, undoRemove, reorderItem } = useCutParts(projectId)
   const lumberItems = useProjectStore((s) => s.lumberItems)
   const [kerfIn, setKerfIn] = useState(0.125)
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null)
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null)
+  const [sort, setSort] = useState<SortState>(null)
 
   const groups = useMemo(
     () => buildCutList(items, lumberItems, kerfIn),
@@ -208,6 +209,27 @@ export function CutListView({ projectId }: CutListViewProps) {
     undoRemove(undoState.id)
     setUndoState(null)
   }
+
+  function handleSort(column: string) {
+    setSort(prev => {
+      if (!prev || prev.col !== column) return { col: column, dir: 'asc' }
+      if (prev.dir === 'asc') return { col: column, dir: 'desc' }
+      return null
+    })
+  }
+
+  const displayItems = sort === null
+    ? [...items].sort((a, b) => a.sort_order - b.sort_order)
+    : [...items].sort((a, b) => {
+        const v = sort.dir === 'asc' ? 1 : -1
+        switch (sort.col) {
+          case 'label': return (a.label || '').localeCompare(b.label || '') * v
+          case 'width': return (a.width_in - b.width_in) * v
+          case 'length': return (a.length_in - b.length_in) * v
+          case 'qty': return (a.quantity - b.quantity) * v
+          default: return 0
+        }
+      })
 
   function handleUpdate(id: string, field: keyof CutPart, raw: string) {
     const numericFields: Array<keyof CutPart> = [
@@ -254,17 +276,26 @@ export function CutListView({ projectId }: CutListViewProps) {
           <div className="min-w-[700px] sm:min-w-0">
             <div className={bomHeader}>
               <span className={col.md}>Stock</span>
-              <span className={col.lg}>Part name</span>
+              <span className={col.lg}>
+                <SortableHeader label="Part name" column="label" sort={sort} onSort={handleSort} />
+              </span>
               <span className={col.sm}>T (in)</span>
-              <span className={col.sm}>W (in)</span>
-              <span className={col.sm}>L (in)</span>
+              <span className={col.sm}>
+                <SortableHeader label="W (in)" column="width" sort={sort} onSort={handleSort} />
+              </span>
+              <span className={col.sm}>
+                <SortableHeader label="L (in)" column="length" sort={sort} onSort={handleSort} />
+              </span>
               <span className={col.sm}>Stock W&quot;</span>
               <span className={col.sm}>Stock L&quot;</span>
-              <span className={col.sm}>Qty</span>
+              <span className={col.sm}>
+                <SortableHeader label="Qty" column="qty" sort={sort} onSort={handleSort} />
+              </span>
+              <span className={col.reorder}></span>
               <span className={col.delete}></span>
             </div>
 
-            {items.map((item, rowIndex) => {
+            {displayItems.map((item, rowIndex) => {
               const isLinked = !!item.lumber_item_id
               const dims = getStockDimsDisplay(item)
               return (
@@ -276,7 +307,7 @@ export function CutListView({ projectId }: CutListViewProps) {
                   </div>
                 )}
                 <div
-                  className={`${bomRow} border-b hover:bg-muted/30`}
+                  className={`${bomRow} group border-b hover:bg-muted/30`}
                 >
                   {/* Stock dropdown */}
                   <div className={col.md}>
@@ -372,6 +403,18 @@ export function CutListView({ projectId }: CutListViewProps) {
                     />
                   </div>
 
+                  {/* Reorder */}
+                  <div className={col.reorder}>
+                    {sort === null && (
+                      <ReorderButtons
+                        onUp={() => reorderItem(item.id, 'up')}
+                        onDown={() => reorderItem(item.id, 'down')}
+                        isFirst={rowIndex === 0}
+                        isLast={rowIndex === displayItems.length - 1}
+                      />
+                    )}
+                  </div>
+
                   {/* Delete */}
                   <div className={col.delete}>
                     <button
@@ -388,7 +431,7 @@ export function CutListView({ projectId }: CutListViewProps) {
               )
             })}
 
-            {undoState?.index === items.length && (
+            {undoState?.index === displayItems.length && (
               <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
                 <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
                 <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
@@ -410,6 +453,7 @@ export function CutListView({ projectId }: CutListViewProps) {
               <span className={col.sm}></span>
               <span className={col.sm}></span>
               <span className={col.sm}></span>
+              <span className={col.reorder}></span>
               <span className={col.delete}></span>
             </div>
 

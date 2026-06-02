@@ -7,7 +7,7 @@ import {
   convertLFtoBFPrice,
 } from "@/lib/calculations/boardFeet";
 import { useProjectStore } from "@/store/projectStore";
-import { EditableCell, CurrencyCell } from "@/components/bom/BomCells";
+import { EditableCell, CurrencyCell, SortableHeader, ReorderButtons, type SortState } from "@/components/bom/BomCells";
 import { SpeciesInput } from "@/components/bom/SpeciesInput";
 import type { LumberItem, LengthUnit } from "@/types/bom";
 import { Button } from "@/components/ui/button";
@@ -53,9 +53,10 @@ function inferPricingMode(species: string): LumberItem['pricing_mode'] {
 }
 
 export function LumberSection({ projectId }: LumberSectionProps) {
-  const { items, addItem, updateItem, removeItem, undoRemove } = useLumberItems(projectId);
+  const { items, addItem, updateItem, removeItem, undoRemove, reorderItem } = useLumberItems(projectId);
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null);
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [sort, setSort] = useState<SortState>(null);
   const [stalePriceIds, setStalePriceIds] = useState<Set<string>>(new Set());
   const [showPanelCalc, setShowPanelCalc] = useState(false);
   const addLumberItem = useProjectStore((s) => s.addLumberItem);
@@ -97,6 +98,15 @@ export function LumberSection({ projectId }: LumberSectionProps) {
     undoRemove(undoState.id);
     setUndoState(null);
   }
+
+  function handleSort(column: string) {
+    setSort(prev => {
+      if (!prev || prev.col !== column) return { col: column, dir: 'asc' }
+      if (prev.dir === 'asc') return { col: column, dir: 'desc' }
+      return null
+    })
+  }
+
   const TAB_OFFSET = 100;
   const TAB_STOPS_PER_ROW = 9;
 
@@ -159,6 +169,19 @@ export function LumberSection({ projectId }: LumberSectionProps) {
     return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
   }
 
+  const displayItems = sort === null
+    ? [...items].sort((a, b) => a.sort_order - b.sort_order)
+    : [...items].sort((a, b) => {
+        const v = sort.dir === 'asc' ? 1 : -1
+        switch (sort.col) {
+          case 'species': return (a.species || '').localeCompare(b.species || '') * v
+          case 'qty': return (a.quantity - b.quantity) * v
+          case 'price': return (a.price_per_unit - b.price_per_unit) * v
+          case 'total': return (getLineTotal(a) - getLineTotal(b)) * v
+          default: return 0
+        }
+      })
+
   return (
     <div className={bomSection}>
         <div className={bomSectionHeader}>
@@ -201,20 +224,29 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                 ) : <>
                 {/* Header row */}
                 <div className={bomHeader}>
-                  <span className={`${col.first}`}>Item</span>
+                  <span className={`${col.first}`}>
+                    <SortableHeader label="Item" column="species" sort={sort} onSort={handleSort} />
+                  </span>
                   <span className={`${col.md} pl-1`}>T(in)</span>
                   <span className={`${col.md} pl-1`}>W(in)</span>
                   <span className={`${col.md} pl-1`}>L</span>
                   <span className={col.toggle}>L ft/in</span>
-                  <span className={`${col.sm} pl-1`}>Qty</span>
+                  <span className={`${col.sm} pl-1`}>
+                    <SortableHeader label="Qty" column="qty" sort={sort} onSort={handleSort} />
+                  </span>
                   <span className={`${col.pricingMode} pl-1`}>Unit</span>
-                  <span className={`${col.lg} pl-1`}>Price</span>
+                  <span className={`${col.lg} pl-1`}>
+                    <SortableHeader label="Price" column="price" sort={sort} onSort={handleSort} />
+                  </span>
                   <span className={`${col.sm} pl-1`}>BF</span>
-                  <span className={col.last}>Total</span>
+                  <span className={col.last}>
+                    <SortableHeader label="Total" column="total" sort={sort} onSort={handleSort} />
+                  </span>
+                  <span className={col.reorder}></span>
                   <span className={col.delete}></span>
                 </div>
                 {/* Item rows */}
-                {items.map((item, rowIndex) => {
+                {displayItems.map((item, rowIndex) => {
                   const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET;
                   const totalBF = getLineBF(item);
                   const lineTotal = getLineTotal(item);
@@ -388,6 +420,16 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                           ? <span className="text-green-600">$0.00</span>
                           : formatCurrency(lineTotal)}
                       </div>
+                      <div className={col.reorder}>
+                        {sort === null && (
+                          <ReorderButtons
+                            onUp={() => reorderItem(item.id, 'up')}
+                            onDown={() => reorderItem(item.id, 'down')}
+                            isFirst={rowIndex === 0}
+                            isLast={rowIndex === displayItems.length - 1}
+                          />
+                        )}
+                      </div>
                       <div className={col.delete}>
                         <button
                           onClick={() => handleRemove(item.id, item.species || "lumber row", rowIndex)}
@@ -403,7 +445,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                     </Fragment>
                   );
                 })}
-                {undoState?.index === items.length && (
+                {undoState?.index === displayItems.length && (
                   <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
                     <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
                     <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
@@ -428,7 +470,7 @@ export function LumberSection({ projectId }: LumberSectionProps) {
                   <span className={`${col.md} pl-1`} /><span className={col.toggle} />
                   <span className={col.sm} /><span className={col.pricingMode} />
                   <span className={col.lg} /><span className={col.sm} />
-                  <span className={col.last} /><span className={col.delete} />
+                  <span className={col.last} /><span className={col.reorder} /><span className={col.delete} />
                 </div>
 
                 </>}

@@ -142,3 +142,69 @@ export function DescriptionCell({
     />
   );
 }
+
+// ─── SortableHeader ────────────────────────────────────────────────────────────
+
+export type SortState = { col: string; dir: 'asc' | 'desc' } | null
+
+export function SortableHeader({
+  label,
+  column,
+  sort,
+  onSort,
+  className = '',
+}: {
+  label: string
+  column: string
+  sort: SortState
+  onSort: (col: string) => void
+  className?: string
+}) {
+  const active = sort?.col === column
+  return (
+    <button
+      onClick={() => onSort(column)}
+      className={`flex items-center gap-0.5 hover:text-foreground transition-colors ${active ? 'text-foreground' : ''} ${className}`}
+    >
+      {label}
+      {active && <span className="ml-0.5 text-[9px] leading-none">{sort!.dir === 'asc' ? '↑' : '↓'}</span>}
+    </button>
+  )
+}
+
+// ─── ReorderButtons ────────────────────────────────────────────────────────────
+
+export function ReorderButtons({
+  onUp,
+  onDown,
+  isFirst,
+  isLast,
+}: {
+  onUp: () => void
+  onDown: () => void
+  isFirst: boolean
+  isLast: boolean
+}) {
+  return (
+    <div className="flex flex-col items-center">
+      <button
+        onClick={onUp}
+        disabled={isFirst}
+        aria-label="Move row up"
+        className="text-muted-foreground/40 hover:text-muted-foreground disabled:opacity-20
+          disabled:cursor-not-allowed focus:outline-none leading-none px-0.5 py-px"
+      >
+        <span className="text-[9px]">▲</span>
+      </button>
+      <button
+        onClick={onDown}
+        disabled={isLast}
+        aria-label="Move row down"
+        className="text-muted-foreground/40 hover:text-muted-foreground disabled:opacity-20
+          disabled:cursor-not-allowed focus:outline-none leading-none px-0.5 py-px"
+      >
+        <span className="text-[9px]">▼</span>
+      </button>
+    </div>
+  )
+}

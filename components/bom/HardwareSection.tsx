@@ -9,6 +9,9 @@ import {
   EditableCell,
   CurrencyCell,
   DescriptionCell,
+  SortableHeader,
+  ReorderButtons,
+  type SortState,
 } from "@/components/bom/BomCells";
 import {
   Select,
@@ -40,11 +43,12 @@ interface HardwareSectionProps {
 }
 
 export function HardwareSection({ projectId }: HardwareSectionProps) {
-  const { items, addItem, updateItem, removeItem, undoRemove } =
+  const { items, addItem, updateItem, removeItem, undoRemove, reorderItem } =
     useHardwareItems(projectId);
   const totals = useProjectStore((state) => state.totals);
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null);
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [sort, setSort] = useState<SortState>(null);
 
   function handleRemove(id: string, label: string, index: number) {
     removeItem(id);
@@ -59,6 +63,27 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
     undoRemove(undoState.id);
     setUndoState(null);
   }
+
+  function handleSort(column: string) {
+    setSort(prev => {
+      if (!prev || prev.col !== column) return { col: column, dir: 'asc' }
+      if (prev.dir === 'asc') return { col: column, dir: 'desc' }
+      return null
+    })
+  }
+
+  const displayItems = sort === null
+    ? [...items].sort((a, b) => a.sort_order - b.sort_order)
+    : [...items].sort((a, b) => {
+        const v = sort.dir === 'asc' ? 1 : -1
+        switch (sort.col) {
+          case 'description': return (a.description || '').localeCompare(b.description || '') * v
+          case 'qty': return (a.quantity - b.quantity) * v
+          case 'cost': return (a.unit_cost - b.unit_cost) * v
+          case 'total': return (a.quantity * a.unit_cost - b.quantity * b.unit_cost) * v
+          default: return 0
+        }
+      })
 
   const TAB_OFFSET = 500;
   const TAB_STOPS_PER_ROW = 5;
@@ -110,15 +135,24 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                 </div>
               ) : <>
               <div className={bomHeader}>
-                <span className={col.first}>Description</span>
-                <span className={col.sm}>Qty</span>
+                <span className={col.first}>
+                  <SortableHeader label="Description" column="description" sort={sort} onSort={handleSort} />
+                </span>
+                <span className={col.sm}>
+                  <SortableHeader label="Qty" column="qty" sort={sort} onSort={handleSort} />
+                </span>
                 <span className={col.unit}>Unit</span>
-                <span className={col.lg}>Cost</span>
-                <span className={col.last}>Total</span>
+                <span className={col.lg}>
+                  <SortableHeader label="Cost" column="cost" sort={sort} onSort={handleSort} />
+                </span>
+                <span className={col.last}>
+                  <SortableHeader label="Total" column="total" sort={sort} onSort={handleSort} />
+                </span>
+                <span className={col.reorder}></span>
                 <span className={col.delete}></span>
               </div>
 
-              {items.map((item, rowIndex) => {
+              {displayItems.map((item, rowIndex) => {
                 const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET;
                 const lineTotal = item.quantity * item.unit_cost;
 
@@ -132,7 +166,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                   )}
                   <div
                     data-hardware-row
-                    className={`${bomRow} border-b hover:bg-muted/30`}
+                    className={`${bomRow} group border-b hover:bg-muted/30`}
                   >
                     <div className={col.first} title={item.description}>
                       <DescriptionCell
@@ -185,6 +219,16 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                     <div className={`${col.last} text-sm`}>
                       {formatCurrency(lineTotal)}
                     </div>
+                    <div className={col.reorder}>
+                      {sort === null && (
+                        <ReorderButtons
+                          onUp={() => reorderItem(item.id, 'up')}
+                          onDown={() => reorderItem(item.id, 'down')}
+                          isFirst={rowIndex === 0}
+                          isLast={rowIndex === displayItems.length - 1}
+                        />
+                      )}
+                    </div>
                     <div className={col.delete}>
                       <button
                         onClick={() => handleRemove(item.id, item.description || "hardware row", rowIndex)}
@@ -201,7 +245,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                 );
               })}
 
-              {undoState?.index === items.length && (
+              {undoState?.index === displayItems.length && (
                 <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
                   <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
                   <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
@@ -225,7 +269,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                 <span className={col.first}>+ Add hardware</span>
                 <span className={col.sm} /><span className={col.unit} />
                 <span className={col.lg} /><span className={col.last} />
-                <span className={col.delete} />
+                <span className={col.reorder} /><span className={col.delete} />
               </div>
 
               <div className="flex justify-end text-sm pt-3">

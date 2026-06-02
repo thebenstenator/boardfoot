@@ -49,7 +49,6 @@ export function useLumberItems(projectId: string) {
 
   const updateItem = useCallback(
     async (id: string, patch: Partial<LumberItem>) => {
-      // Optimistic update — update store immediately
       updateLumberItem(id, patch);
 
       useProjectStore.getState().startSave();
@@ -71,10 +70,8 @@ export function useLumberItems(projectId: string) {
       const item = lumberItems.find((i) => i.id === id) ?? null;
       if (!item) return null;
 
-      // Optimistic: remove from store immediately
       removeLumberItem(id);
 
-      // Schedule DB delete in 5s — cancelled if undo is called
       const timeout = setTimeout(async () => {
         const { error } = await supabase.from("lumber_items").delete().eq("id", id);
         pendingDeletes.current.delete(id);
@@ -95,9 +92,25 @@ export function useLumberItems(projectId: string) {
     if (!pending) return;
     clearTimeout(pending.timeout);
     pendingDeletes.current.delete(id);
-    // Row still exists in DB (delete was deferred) — restore to store only
     addLumberItem(pending.item);
   }, [addLumberItem]);
+
+  const reorderItem = useCallback(async (id: string, direction: 'up' | 'down') => {
+    const sorted = [...lumberItems].sort((a, b) => a.sort_order - b.sort_order);
+    const idx = sorted.findIndex(i => i.id === id);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
+    const item = sorted[idx];
+    const swap = sorted[swapIdx];
+    updateLumberItem(id, { sort_order: swap.sort_order });
+    updateLumberItem(swap.id, { sort_order: item.sort_order });
+    useProjectStore.getState().startSave();
+    await Promise.all([
+      supabase.from('lumber_items').update({ sort_order: swap.sort_order }).eq('id', id),
+      supabase.from('lumber_items').update({ sort_order: item.sort_order }).eq('id', swap.id),
+    ]);
+    useProjectStore.getState().endSave();
+  }, [lumberItems, updateLumberItem, supabase]);
 
   return {
     items: lumberItems,
@@ -105,6 +118,7 @@ export function useLumberItems(projectId: string) {
     updateItem,
     removeItem,
     undoRemove,
+    reorderItem,
   };
 }
 
@@ -192,12 +206,30 @@ export function useHardwareItems(projectId: string) {
     addHardwareItem(pending.item);
   }, [addHardwareItem]);
 
+  const reorderItem = useCallback(async (id: string, direction: 'up' | 'down') => {
+    const sorted = [...hardwareItems].sort((a, b) => a.sort_order - b.sort_order);
+    const idx = sorted.findIndex(i => i.id === id);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
+    const item = sorted[idx];
+    const swap = sorted[swapIdx];
+    updateHardwareItem(id, { sort_order: swap.sort_order });
+    updateHardwareItem(swap.id, { sort_order: item.sort_order });
+    useProjectStore.getState().startSave();
+    await Promise.all([
+      supabase.from('hardware_items').update({ sort_order: swap.sort_order }).eq('id', id),
+      supabase.from('hardware_items').update({ sort_order: item.sort_order }).eq('id', swap.id),
+    ]);
+    useProjectStore.getState().endSave();
+  }, [hardwareItems, updateHardwareItem, supabase]);
+
   return {
     items: hardwareItems,
     addItem,
     updateItem,
     removeItem,
     undoRemove,
+    reorderItem,
   };
 }
 
@@ -280,12 +312,30 @@ export function useFinishItems(projectId: string) {
     addFinishItem(pending.item);
   }, [addFinishItem]);
 
+  const reorderItem = useCallback(async (id: string, direction: 'up' | 'down') => {
+    const sorted = [...finishItems].sort((a, b) => a.sort_order - b.sort_order);
+    const idx = sorted.findIndex(i => i.id === id);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
+    const item = sorted[idx];
+    const swap = sorted[swapIdx];
+    updateFinishItem(id, { sort_order: swap.sort_order });
+    updateFinishItem(swap.id, { sort_order: item.sort_order });
+    useProjectStore.getState().startSave();
+    await Promise.all([
+      supabase.from('finish_items').update({ sort_order: swap.sort_order }).eq('id', id),
+      supabase.from('finish_items').update({ sort_order: item.sort_order }).eq('id', swap.id),
+    ]);
+    useProjectStore.getState().endSave();
+  }, [finishItems, updateFinishItem, supabase]);
+
   return {
     items: finishItems,
     addItem,
     updateItem,
     removeItem,
     undoRemove,
+    reorderItem,
   };
 }
 
@@ -295,12 +345,10 @@ export function useProjectLabor(projectId: string) {
 
   const updateLabor = useCallback(
     async (patch: Partial<ProjectLabor>) => {
-      // Optimistic update
       if (labor) {
         setLabor({ ...labor, ...patch });
       }
 
-      // Check if labor row exists
       const { data: existing } = await supabase
         .from("project_labor")
         .select("id")
@@ -315,7 +363,6 @@ export function useProjectLabor(projectId: string) {
 
         if (error) console.error("Failed to update labor:", error);
       } else {
-        // Create new labor row
         const { data, error } = await supabase
           .from("project_labor")
           .insert({
@@ -394,5 +441,22 @@ export function useCutParts(projectId: string) {
     addCutPart(pending.item);
   }, [addCutPart]);
 
-  return { items: cutParts, addItem, updateItem, removeItem, undoRemove };
+  const reorderItem = useCallback(async (id: string, direction: 'up' | 'down') => {
+    const sorted = [...cutParts].sort((a, b) => a.sort_order - b.sort_order);
+    const idx = sorted.findIndex(i => i.id === id);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
+    const item = sorted[idx];
+    const swap = sorted[swapIdx];
+    updateCutPart(id, { sort_order: swap.sort_order });
+    updateCutPart(swap.id, { sort_order: item.sort_order });
+    useProjectStore.getState().startSave();
+    await Promise.all([
+      supabase.from('cut_parts').update({ sort_order: swap.sort_order }).eq('id', id),
+      supabase.from('cut_parts').update({ sort_order: item.sort_order }).eq('id', swap.id),
+    ]);
+    useProjectStore.getState().endSave();
+  }, [cutParts, updateCutPart, supabase]);
+
+  return { items: cutParts, addItem, updateItem, removeItem, undoRemove, reorderItem };
 }
