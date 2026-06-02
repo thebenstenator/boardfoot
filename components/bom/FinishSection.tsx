@@ -148,7 +148,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
       </div>
 
       <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
-        <div className="min-w-[500px] sm:min-w-0">
+        <div className="min-w-[620px] sm:min-w-0">
           {items.length === 0 ? (
             <div
               onClick={async () => {
@@ -166,15 +166,15 @@ export function FinishSection({ projectId }: FinishSectionProps) {
           ) : (
             <>
               <div className={bomHeader}>
-                <span className={col.first}>
+                <span className={"flex-[2] min-w-0"}>
                   <SortableHeader label="Description" column="description" sort={sort} onSort={handleSort} />
                 </span>
-                <span className={col.lg}>Container size</span>
-                <span className={col.unit}>Unit</span>
-                <span className={col.lg}>
+                <span className="w-[4.5rem] shrink-0 text-center">Container size</span>
+                <span className={"w-[4.5rem] shrink-0"}>Unit</span>
+                <span className="flex-[1.5] min-w-0">
                   <SortableHeader label="Container cost" column="cost" sort={sort} onSort={handleSort} />
                 </span>
-                <span className={col.lg}>Amount used</span>
+                <span className="w-[4.5rem] shrink-0 text-center">Amount used</span>
                 <span className={col.last}>
                   <SortableHeader label="Total" column="total" sort={sort} onSort={handleSort} />
                 </span>
@@ -197,7 +197,7 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                         )}
                         <SortableRow id={item.id}>
                           <div data-finish-row className={`${bomRow} group border-b hover:bg-muted/30`}>
-                            <div className={col.first} title={item.description}>
+                            <div className={"flex-[2] min-w-0"} title={item.description}>
                               <DescriptionCell
                                 value={item.description}
                                 onChange={(v) => {
@@ -211,10 +211,10 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                                 tabIndex={baseTab}
                               />
                             </div>
-                            <div className={col.lg}>
-                              <EditableCell value={item.container_size ?? ""} onChange={(v) => handleContainerSizeUpdate(item, v)} type="number" tabIndex={baseTab + 1} />
+                            <div className="w-[4.5rem] shrink-0">
+                              <EditableCell value={item.container_size ?? ""} onChange={(v) => handleContainerSizeUpdate(item, v)} type="number" tabIndex={baseTab + 1} className="text-center" />
                             </div>
-                            <div className={col.unit}>
+                            <div className={"w-[4.5rem] shrink-0"}>
                               <Select value={item.unit} onValueChange={(v) => updateItem(item.id, { unit: v })}>
                                 <SelectTrigger className="h-7 w-full text-xs border-transparent hover:border-border focus:border-ring">
                                   <SelectValue />
@@ -226,11 +226,11 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                                 </SelectContent>
                               </Select>
                             </div>
-                            <div className={col.lg}>
+                            <div className="flex-[1.5] min-w-0">
                               <CurrencyCell value={item.container_cost} onChange={(v) => handleUpdate(item.id, "container_cost", v)} tabIndex={baseTab + 2} />
                             </div>
-                            <div className={col.lg}>
-                              <EditableCell value={item.amount_used ?? ""} onChange={(v) => handleAmountUpdate(item, v)} type="number" tabIndex={baseTab + 3} />
+                            <div className="w-[4.5rem] shrink-0">
+                              <EditableCell value={item.amount_used ?? ""} onChange={(v) => handleAmountUpdate(item, v)} type="number" tabIndex={baseTab + 3} className="text-center" />
                             </div>
                             <div className={`${col.last} text-sm`}>
                               {formatCurrency(lineCost)}
@@ -277,9 +277,9 @@ export function FinishSection({ projectId }: FinishSectionProps) {
                   text-sm text-muted-foreground/40 hover:text-muted-foreground/70
                   hover:bg-muted/20 cursor-pointer select-none transition-colors"
               >
-                <span className={col.first}>+ Add consumable</span>
-                <span className={col.lg} /><span className={col.unit} />
-                <span className={col.lg} /><span className={col.lg} />
+                <span className={"flex-[2] min-w-0"}>+ Add consumable</span>
+                <span className="w-[4.5rem] shrink-0" /><span className={"w-[4.5rem] shrink-0"} />
+                <span className="flex-[1.5] min-w-0" /><span className="w-[4.5rem] shrink-0" />
                 <span className={col.last} /><span className={col.reorder} /><span className={col.delete} />
               </div>
 

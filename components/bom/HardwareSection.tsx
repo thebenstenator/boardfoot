@@ -142,14 +142,14 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
           ) : (
             <>
               <div className={bomHeader}>
-                <span className={col.first}>
+                <span className={"flex-[2.5] min-w-0"}>
                   <SortableHeader label="Description" column="description" sort={sort} onSort={handleSort} />
                 </span>
-                <span className={col.sm}>
+                <span className={"w-10 shrink-0"}>
                   <SortableHeader label="Qty" column="qty" sort={sort} onSort={handleSort} />
                 </span>
-                <span className={col.unit}>Unit</span>
-                <span className={col.lg}>
+                <span className={"w-[4.5rem] shrink-0"}>Unit</span>
+                <span className={"flex-1 min-w-0"}>
                   <SortableHeader label="Cost" column="cost" sort={sort} onSort={handleSort} />
                 </span>
                 <span className={col.last}>
@@ -174,7 +174,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                         )}
                         <SortableRow id={item.id}>
                           <div data-hardware-row className={`${bomRow} group border-b hover:bg-muted/30`}>
-                            <div className={col.first} title={item.description}>
+                            <div className={"flex-[2.5] min-w-0"} title={item.description}>
                               <DescriptionCell
                                 value={item.description}
                                 onChange={(v) => {
@@ -188,10 +188,10 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                                 tabIndex={baseTab}
                               />
                             </div>
-                            <div className={col.sm}>
+                            <div className={"w-10 shrink-0"}>
                               <EditableCell value={item.quantity} onChange={(v) => handleUpdate(item.id, "quantity", v)} type="number" tabIndex={baseTab + 1} />
                             </div>
-                            <div className={col.unit}>
+                            <div className={"w-[4.5rem] shrink-0"}>
                               <Select value={item.unit} onValueChange={(v) => updateItem(item.id, { unit: v as HardwareUnit })}>
                                 <SelectTrigger className="h-7 w-full text-xs border-transparent hover:border-border focus:border-ring">
                                   <SelectValue />
@@ -203,7 +203,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                                 </SelectContent>
                               </Select>
                             </div>
-                            <div className={col.lg}>
+                            <div className={"flex-1 min-w-0"}>
                               <CurrencyCell value={item.unit_cost} onChange={(v) => handleUpdate(item.id, "unit_cost", v)} tabIndex={baseTab + 3} />
                             </div>
                             <div className={`${col.last} text-sm`}>
@@ -251,9 +251,9 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                   text-sm text-muted-foreground/40 hover:text-muted-foreground/70
                   hover:bg-muted/20 cursor-pointer select-none transition-colors"
               >
-                <span className={col.first}>+ Add hardware</span>
-                <span className={col.sm} /><span className={col.unit} />
-                <span className={col.lg} /><span className={col.last} />
+                <span className={"flex-[2.5] min-w-0"}>+ Add hardware</span>
+                <span className={"w-10 shrink-0"} /><span className={"w-[4.5rem] shrink-0"} />
+                <span className={"flex-1 min-w-0"} /><span className={col.last} />
                 <span className={col.reorder} /><span className={col.delete} />
               </div>
 
