@@ -172,39 +172,3 @@ export function SortableHeader({
   )
 }
 
-// ─── ReorderButtons ────────────────────────────────────────────────────────────
-
-export function ReorderButtons({
-  onUp,
-  onDown,
-  isFirst,
-  isLast,
-}: {
-  onUp: () => void
-  onDown: () => void
-  isFirst: boolean
-  isLast: boolean
-}) {
-  return (
-    <div className="flex flex-col items-center">
-      <button
-        onClick={onUp}
-        disabled={isFirst}
-        aria-label="Move row up"
-        className="text-muted-foreground/40 hover:text-muted-foreground disabled:opacity-20
-          disabled:cursor-not-allowed focus:outline-none leading-none px-0.5 py-px"
-      >
-        <span className="text-[9px]">▲</span>
-      </button>
-      <button
-        onClick={onDown}
-        disabled={isLast}
-        aria-label="Move row down"
-        className="text-muted-foreground/40 hover:text-muted-foreground disabled:opacity-20
-          disabled:cursor-not-allowed focus:outline-none leading-none px-0.5 py-px"
-      >
-        <span className="text-[9px]">▼</span>
-      </button>
-    </div>
-  )
-}

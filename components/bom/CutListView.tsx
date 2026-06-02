@@ -6,7 +6,10 @@ import { useProjectStore } from '@/store/projectStore'
 import { buildCutList } from '@/lib/calculations/cutList'
 import type { BoardLayout, SheetLayout, CutPiece, StockGroup } from '@/lib/calculations/cutList'
 import { Button } from '@/components/ui/button'
-import { EditableCell, DescriptionCell, SortableHeader, ReorderButtons, type SortState } from '@/components/bom/BomCells'
+import { EditableCell, DescriptionCell, SortableHeader, type SortState } from '@/components/bom/BomCells'
+import { SortableRow, DragHandle } from '@/components/bom/SortableRow'
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { bomRow, bomHeader, col } from '@/components/bom/bomStyles'
 import type { CutPart } from '@/types/bom'
 
@@ -184,12 +187,34 @@ function SheetLayoutView({ layout, group, boardMode = false }: { layout: SheetLa
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function CutListView({ projectId }: CutListViewProps) {
-  const { items, addItem, updateItem, removeItem, undoRemove, reorderItem } = useCutParts(projectId)
+  const { items, addItem, updateItem, removeItem, undoRemove, reorderItems } = useCutParts(projectId)
   const lumberItems = useProjectStore((s) => s.lumberItems)
   const [kerfIn, setKerfIn] = useState(0.125)
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null)
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null)
   const [sort, setSort] = useState<SortState>(null)
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+
+  const displayItems = sort === null
+    ? [...items].sort((a, b) => a.sort_order - b.sort_order)
+    : [...items].sort((a, b) => {
+        const v = sort.dir === 'asc' ? 1 : -1
+        switch (sort.col) {
+          case 'label': return (a.label || '').localeCompare(b.label || '') * v
+          case 'width': return (a.width_in - b.width_in) * v
+          case 'length': return (a.length_in - b.length_in) * v
+          case 'qty': return (a.quantity - b.quantity) * v
+          default: return 0
+        }
+      })
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const ids = displayItems.map(i => i.id)
+    reorderItems(arrayMove(ids, ids.indexOf(active.id as string), ids.indexOf(over.id as string)))
+  }
 
   const groups = useMemo(
     () => buildCutList(items, lumberItems, kerfIn),
@@ -217,19 +242,6 @@ export function CutListView({ projectId }: CutListViewProps) {
       return null
     })
   }
-
-  const displayItems = sort === null
-    ? [...items].sort((a, b) => a.sort_order - b.sort_order)
-    : [...items].sort((a, b) => {
-        const v = sort.dir === 'asc' ? 1 : -1
-        switch (sort.col) {
-          case 'label': return (a.label || '').localeCompare(b.label || '') * v
-          case 'width': return (a.width_in - b.width_in) * v
-          case 'length': return (a.length_in - b.length_in) * v
-          case 'qty': return (a.quantity - b.quantity) * v
-          default: return 0
-        }
-      })
 
   function handleUpdate(id: string, field: keyof CutPart, raw: string) {
     const numericFields: Array<keyof CutPart> = [
@@ -295,6 +307,8 @@ export function CutListView({ projectId }: CutListViewProps) {
               <span className={col.delete}></span>
             </div>
 
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={displayItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
             {displayItems.map((item, rowIndex) => {
               const isLinked = !!item.lumber_item_id
               const dims = getStockDimsDisplay(item)
@@ -306,6 +320,7 @@ export function CutListView({ projectId }: CutListViewProps) {
                     <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
                   </div>
                 )}
+                <SortableRow id={item.id}>
                 <div
                   className={`${bomRow} group border-b hover:bg-muted/30`}
                 >
@@ -405,14 +420,7 @@ export function CutListView({ projectId }: CutListViewProps) {
 
                   {/* Reorder */}
                   <div className={col.reorder}>
-                    {sort === null && (
-                      <ReorderButtons
-                        onUp={() => reorderItem(item.id, 'up')}
-                        onDown={() => reorderItem(item.id, 'down')}
-                        isFirst={rowIndex === 0}
-                        isLast={rowIndex === displayItems.length - 1}
-                      />
-                    )}
+                    {sort === null && <DragHandle />}
                   </div>
 
                   {/* Delete */}
@@ -427,9 +435,12 @@ export function CutListView({ projectId }: CutListViewProps) {
                     </button>
                   </div>
                 </div>
+                </SortableRow>
                 </Fragment>
               )
             })}
+              </SortableContext>
+            </DndContext>
 
             {undoState?.index === displayItems.length && (
               <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">

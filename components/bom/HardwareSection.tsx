@@ -5,14 +5,21 @@ import { useHardwareItems } from "@/hooks/useLineItems";
 import { useProjectStore } from "@/store/projectStore";
 import type { HardwareItem, HardwareUnit } from "@/types/bom";
 import { Button } from "@/components/ui/button";
+import { EditableCell, CurrencyCell, DescriptionCell, SortableHeader, type SortState } from "@/components/bom/BomCells";
+import { SortableRow, DragHandle } from "@/components/bom/SortableRow";
 import {
-  EditableCell,
-  CurrencyCell,
-  DescriptionCell,
-  SortableHeader,
-  ReorderButtons,
-  type SortState,
-} from "@/components/bom/BomCells";
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
 import {
   Select,
   SelectContent,
@@ -20,13 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  bomSection,
-  bomSectionHeader,
-  bomHeader,
-  bomRow,
-  col,
-} from "./bomStyles";
+import { bomSection, bomSectionHeader, bomHeader, bomRow, col } from "./bomStyles";
 
 const UNIT_OPTIONS: HardwareUnit[] = ["each", "box", "pair", "set", "lb", "oz"];
 
@@ -43,12 +44,33 @@ interface HardwareSectionProps {
 }
 
 export function HardwareSection({ projectId }: HardwareSectionProps) {
-  const { items, addItem, updateItem, removeItem, undoRemove, reorderItem } =
-    useHardwareItems(projectId);
+  const { items, addItem, updateItem, removeItem, undoRemove, reorderItems } = useHardwareItems(projectId);
   const totals = useProjectStore((state) => state.totals);
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null);
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null);
   const [sort, setSort] = useState<SortState>(null);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+
+  const displayItems = sort === null
+    ? [...items].sort((a, b) => a.sort_order - b.sort_order)
+    : [...items].sort((a, b) => {
+        const v = sort.dir === 'asc' ? 1 : -1;
+        switch (sort.col) {
+          case 'description': return (a.description || '').localeCompare(b.description || '') * v;
+          case 'qty': return (a.quantity - b.quantity) * v;
+          case 'cost': return (a.unit_cost - b.unit_cost) * v;
+          case 'total': return (a.quantity * a.unit_cost - b.quantity * b.unit_cost) * v;
+          default: return 0;
+        }
+      });
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const ids = displayItems.map(i => i.id);
+    reorderItems(arrayMove(ids, ids.indexOf(active.id as string), ids.indexOf(over.id as string)));
+  }
 
   function handleRemove(id: string, label: string, index: number) {
     removeItem(id);
@@ -66,33 +88,18 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
 
   function handleSort(column: string) {
     setSort(prev => {
-      if (!prev || prev.col !== column) return { col: column, dir: 'asc' }
-      if (prev.dir === 'asc') return { col: column, dir: 'desc' }
-      return null
-    })
+      if (!prev || prev.col !== column) return { col: column, dir: 'asc' };
+      if (prev.dir === 'asc') return { col: column, dir: 'desc' };
+      return null;
+    });
   }
-
-  const displayItems = sort === null
-    ? [...items].sort((a, b) => a.sort_order - b.sort_order)
-    : [...items].sort((a, b) => {
-        const v = sort.dir === 'asc' ? 1 : -1
-        switch (sort.col) {
-          case 'description': return (a.description || '').localeCompare(b.description || '') * v
-          case 'qty': return (a.quantity - b.quantity) * v
-          case 'cost': return (a.unit_cost - b.unit_cost) * v
-          case 'total': return (a.quantity * a.unit_cost - b.quantity * b.unit_cost) * v
-          default: return 0
-        }
-      })
 
   const TAB_OFFSET = 500;
   const TAB_STOPS_PER_ROW = 5;
 
   function handleUpdate(id: string, field: keyof HardwareItem, raw: string) {
     const numericFields = ["quantity", "unit_cost"];
-    const value = numericFields.includes(field)
-      ? Math.max(0, parseFloat(raw) || 0)
-      : raw;
+    const value = numericFields.includes(field) ? Math.max(0, parseFloat(raw) || 0) : raw;
     updateItem(id, { [field]: value } as Partial<HardwareItem>);
   }
 
@@ -117,23 +124,23 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
       </div>
 
       <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
-          <div className="min-w-[500px] sm:min-w-0">
-            <div>
-              {items.length === 0 ? (
-                <div
-                  onClick={async () => {
-                    await addItem();
-                    setTimeout(() => {
-                      const rows = document.querySelectorAll('[data-hardware-row]');
-                      const last = rows[rows.length - 1];
-                      (last?.querySelector('input, textarea') as HTMLElement)?.focus();
-                    }, 0);
-                  }}
-                  className="py-10 text-center text-sm text-muted-foreground/50 hover:text-muted-foreground/70 cursor-pointer select-none transition-colors border border-dashed rounded-md my-2"
-                >
-                  No hardware yet — click to add your first item
-                </div>
-              ) : <>
+        <div className="min-w-[500px] sm:min-w-0">
+          {items.length === 0 ? (
+            <div
+              onClick={async () => {
+                await addItem();
+                setTimeout(() => {
+                  const rows = document.querySelectorAll('[data-hardware-row]');
+                  const last = rows[rows.length - 1];
+                  (last?.querySelector('input, textarea') as HTMLElement)?.focus();
+                }, 0);
+              }}
+              className="py-10 text-center text-sm text-muted-foreground/50 hover:text-muted-foreground/70 cursor-pointer select-none transition-colors border border-dashed rounded-md my-2"
+            >
+              No hardware yet — click to add your first item
+            </div>
+          ) : (
+            <>
               <div className={bomHeader}>
                 <span className={col.first}>
                   <SortableHeader label="Description" column="description" sort={sort} onSort={handleSort} />
@@ -152,98 +159,76 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                 <span className={col.delete}></span>
               </div>
 
-              {displayItems.map((item, rowIndex) => {
-                const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET;
-                const lineTotal = item.quantity * item.unit_cost;
-
-                return (
-                  <Fragment key={item.id}>
-                  {undoState?.index === rowIndex && (
-                    <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
-                      <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
-                      <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
-                    </div>
-                  )}
-                  <div
-                    data-hardware-row
-                    className={`${bomRow} group border-b hover:bg-muted/30`}
-                  >
-                    <div className={col.first} title={item.description}>
-                      <DescriptionCell
-                        value={item.description}
-                        onChange={(v) => {
-                          const isNew = item.description === "";
-                          handleUpdate(item.id, "description", v);
-                          if (isNew) {
-                            const inferred = inferHardwareUnit(v);
-                            if (inferred !== item.unit) updateItem(item.id, { unit: inferred });
-                          }
-                        }}
-                        tabIndex={baseTab}
-                      />
-                    </div>
-                    <div className={col.sm}>
-                      <EditableCell
-                        value={item.quantity}
-                        onChange={(v) => handleUpdate(item.id, "quantity", v)}
-                        type="number"
-                        tabIndex={baseTab + 1}
-                      />
-                    </div>
-                    <div className={col.unit}>
-                      <Select
-                        value={item.unit}
-                        onValueChange={(v) =>
-                          updateItem(item.id, { unit: v as HardwareUnit })
-                        }
-                      >
-                        <SelectTrigger className="h-7 w-full text-xs border-transparent hover:border-border focus:border-ring">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {UNIT_OPTIONS.map((u) => (
-                            <SelectItem key={u} value={u} className="text-xs">
-                              {u}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className={col.lg}>
-                      <CurrencyCell
-                        value={item.unit_cost}
-                        onChange={(v) => handleUpdate(item.id, "unit_cost", v)}
-                        tabIndex={baseTab + 3}
-                      />
-                    </div>
-                    <div className={`${col.last} text-sm`}>
-                      {formatCurrency(lineTotal)}
-                    </div>
-                    <div className={col.reorder}>
-                      {sort === null && (
-                        <ReorderButtons
-                          onUp={() => reorderItem(item.id, 'up')}
-                          onDown={() => reorderItem(item.id, 'down')}
-                          isFirst={rowIndex === 0}
-                          isLast={rowIndex === displayItems.length - 1}
-                        />
-                      )}
-                    </div>
-                    <div className={col.delete}>
-                      <button
-                        onClick={() => handleRemove(item.id, item.description || "hardware row", rowIndex)}
-                        tabIndex={baseTab + 4}
-                        aria-label={`Delete ${item.description || "hardware row"}`}
-                        className="cursor-pointer text-muted-foreground hover:text-destructive
-                      text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                  </Fragment>
-                );
-              })}
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={displayItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                  {displayItems.map((item, rowIndex) => {
+                    const baseTab = rowIndex * TAB_STOPS_PER_ROW + TAB_OFFSET;
+                    const lineTotal = item.quantity * item.unit_cost;
+                    return (
+                      <Fragment key={item.id}>
+                        {undoState?.index === rowIndex && (
+                          <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
+                            <span className="text-muted-foreground">&ldquo;{undoState.label}&rdquo; deleted</span>
+                            <button onClick={handleUndo} aria-label="Undo delete" className="cursor-pointer font-medium underline hover:text-foreground focus:outline-none">Undo</button>
+                          </div>
+                        )}
+                        <SortableRow id={item.id}>
+                          <div data-hardware-row className={`${bomRow} group border-b hover:bg-muted/30`}>
+                            <div className={col.first} title={item.description}>
+                              <DescriptionCell
+                                value={item.description}
+                                onChange={(v) => {
+                                  const isNew = item.description === "";
+                                  handleUpdate(item.id, "description", v);
+                                  if (isNew) {
+                                    const inferred = inferHardwareUnit(v);
+                                    if (inferred !== item.unit) updateItem(item.id, { unit: inferred });
+                                  }
+                                }}
+                                tabIndex={baseTab}
+                              />
+                            </div>
+                            <div className={col.sm}>
+                              <EditableCell value={item.quantity} onChange={(v) => handleUpdate(item.id, "quantity", v)} type="number" tabIndex={baseTab + 1} />
+                            </div>
+                            <div className={col.unit}>
+                              <Select value={item.unit} onValueChange={(v) => updateItem(item.id, { unit: v as HardwareUnit })}>
+                                <SelectTrigger className="h-7 w-full text-xs border-transparent hover:border-border focus:border-ring">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {UNIT_OPTIONS.map((u) => (
+                                    <SelectItem key={u} value={u} className="text-xs">{u}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className={col.lg}>
+                              <CurrencyCell value={item.unit_cost} onChange={(v) => handleUpdate(item.id, "unit_cost", v)} tabIndex={baseTab + 3} />
+                            </div>
+                            <div className={`${col.last} text-sm`}>
+                              {formatCurrency(lineTotal)}
+                            </div>
+                            <div className={col.reorder}>
+                              {sort === null && <DragHandle />}
+                            </div>
+                            <div className={col.delete}>
+                              <button
+                                onClick={() => handleRemove(item.id, item.description || "hardware row", rowIndex)}
+                                tabIndex={baseTab + 4}
+                                aria-label={`Delete ${item.description || "hardware row"}`}
+                                className="cursor-pointer text-muted-foreground hover:text-destructive text-xs focus:outline-none focus:ring-1 focus:ring-ring rounded"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        </SortableRow>
+                      </Fragment>
+                    );
+                  })}
+                </SortableContext>
+              </DndContext>
 
               {undoState?.index === displayItems.length && (
                 <div className="flex items-center justify-between px-3 py-2 border-b rounded bg-muted text-sm">
@@ -252,7 +237,7 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
                 </div>
               )}
 
-              {/* Ghost row — click to add */}
+              {/* Ghost row */}
               <div
                 onClick={async () => {
                   await addItem();
@@ -273,14 +258,12 @@ export function HardwareSection({ projectId }: HardwareSectionProps) {
               </div>
 
               <div className="flex justify-end text-sm pt-3">
-                <span className="font-medium">
-                  Hardware total: {formatCurrency(totals.hardware.total)}
-                </span>
+                <span className="font-medium">Hardware total: {formatCurrency(totals.hardware.total)}</span>
               </div>
-              </>}
-            </div>
-          </div>
+            </>
+          )}
         </div>
+      </div>
     </div>
   );
 }

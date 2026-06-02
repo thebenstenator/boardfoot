@@ -112,6 +112,15 @@ export function useLumberItems(projectId: string) {
     useProjectStore.getState().endSave();
   }, [lumberItems, updateLumberItem, supabase]);
 
+  const reorderItems = useCallback(async (newIds: string[]) => {
+    newIds.forEach((id, i) => updateLumberItem(id, { sort_order: i }));
+    useProjectStore.getState().startSave();
+    await Promise.all(
+      newIds.map((id, i) => supabase.from('lumber_items').update({ sort_order: i }).eq('id', id))
+    );
+    useProjectStore.getState().endSave();
+  }, [updateLumberItem, supabase]);
+
   return {
     items: lumberItems,
     addItem,
@@ -119,6 +128,7 @@ export function useLumberItems(projectId: string) {
     removeItem,
     undoRemove,
     reorderItem,
+    reorderItems,
   };
 }
 
@@ -223,6 +233,15 @@ export function useHardwareItems(projectId: string) {
     useProjectStore.getState().endSave();
   }, [hardwareItems, updateHardwareItem, supabase]);
 
+  const reorderItems = useCallback(async (newIds: string[]) => {
+    newIds.forEach((id, i) => updateHardwareItem(id, { sort_order: i }));
+    useProjectStore.getState().startSave();
+    await Promise.all(
+      newIds.map((id, i) => supabase.from('hardware_items').update({ sort_order: i }).eq('id', id))
+    );
+    useProjectStore.getState().endSave();
+  }, [updateHardwareItem, supabase]);
+
   return {
     items: hardwareItems,
     addItem,
@@ -230,6 +249,7 @@ export function useHardwareItems(projectId: string) {
     removeItem,
     undoRemove,
     reorderItem,
+    reorderItems,
   };
 }
 
@@ -329,6 +349,15 @@ export function useFinishItems(projectId: string) {
     useProjectStore.getState().endSave();
   }, [finishItems, updateFinishItem, supabase]);
 
+  const reorderItems = useCallback(async (newIds: string[]) => {
+    newIds.forEach((id, i) => updateFinishItem(id, { sort_order: i }));
+    useProjectStore.getState().startSave();
+    await Promise.all(
+      newIds.map((id, i) => supabase.from('finish_items').update({ sort_order: i }).eq('id', id))
+    );
+    useProjectStore.getState().endSave();
+  }, [updateFinishItem, supabase]);
+
   return {
     items: finishItems,
     addItem,
@@ -336,6 +365,7 @@ export function useFinishItems(projectId: string) {
     removeItem,
     undoRemove,
     reorderItem,
+    reorderItems,
   };
 }
 
@@ -458,5 +488,14 @@ export function useCutParts(projectId: string) {
     useProjectStore.getState().endSave();
   }, [cutParts, updateCutPart, supabase]);
 
-  return { items: cutParts, addItem, updateItem, removeItem, undoRemove, reorderItem };
+  const reorderItems = useCallback(async (newIds: string[]) => {
+    newIds.forEach((id, i) => updateCutPart(id, { sort_order: i }));
+    useProjectStore.getState().startSave();
+    await Promise.all(
+      newIds.map((id, i) => supabase.from('cut_parts').update({ sort_order: i }).eq('id', id))
+    );
+    useProjectStore.getState().endSave();
+  }, [updateCutPart, supabase]);
+
+  return { items: cutParts, addItem, updateItem, removeItem, undoRemove, reorderItem, reorderItems };
 }
