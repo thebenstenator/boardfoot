@@ -38,7 +38,7 @@ export interface SheetLayout {
     index: number
     strips: Array<{
       widthIn: number       // this strip's rip width
-      pieces: Array<{ piece: CutPiece; offsetIn: number; widthOffsetIn: number }>
+      pieces: Array<{ piece: CutPiece; offsetIn: number; widthOffsetIn: number; rotated: boolean }>
       wasteIn: number       // leftover at end of strip
     }>
     widthUsed: number       // sum of strip widths
@@ -138,27 +138,36 @@ function buildSheetLayout(
   stockLengthIn: number,
   kerfIn: number
 ): SheetLayout {
-  // Sort pieces: widest first so wide strips form first; longest first within same width.
+  // Sort: largest minimum dimension first (most constrained with rotation), then largest max.
+  // For typical boards where widthIn < lengthIn this matches the previous widest-first order.
   const sorted = [...pieces].sort((a, b) => {
-    if (b.widthIn !== a.widthIn) return b.widthIn - a.widthIn
-    return b.lengthIn - a.lengthIn
+    const aMin = Math.min(a.widthIn, a.lengthIn)
+    const bMin = Math.min(b.widthIn, b.lengthIn)
+    if (bMin !== aMin) return bMin - aMin
+    return Math.max(b.widthIn, b.lengthIn) - Math.max(a.widthIn, a.lengthIn)
   })
 
   // Each strip is divided into "columns" — slots at fixed length-offsets.
   // Within a column, multiple pieces can be stacked side-by-side in the WIDTH dimension
   // (sub-rip packing), as long as their widths sum to ≤ the strip's rip width.
-  // This lets e.g. 5 × 3.5" stretchers occupy the 18"-wide waste area after a 50" bottom.
   type Column = {
-    startOffsetIn: number   // length-axis start of this column in the strip
-    maxLengthIn: number     // longest piece length in this column
-    usedWidthIn: number     // cumulative width consumed (pieces + inter-piece kerfs)
+    startOffsetIn: number
+    maxLengthIn: number
+    usedWidthIn: number
   }
 
   type StripInternal = {
-    widthIn: number         // rip width (= widest piece in strip)
+    widthIn: number
     columns: Column[]
-    pieces: Array<{ piece: CutPiece; offsetIn: number; widthOffsetIn: number }>
-    endIn: number           // length-axis end of the last column
+    pieces: Array<{ piece: CutPiece; offsetIn: number; widthOffsetIn: number; rotated: boolean }>
+    endIn: number
+  }
+
+  // Returns both orientations for a piece (skips duplicate if square).
+  function orientations(piece: CutPiece) {
+    const normal = { pw: piece.widthIn, pl: piece.lengthIn, rotated: false }
+    if (Math.abs(piece.widthIn - piece.lengthIn) < 0.001) return [normal]
+    return [normal, { pw: piece.lengthIn, pl: piece.widthIn, rotated: true }]
   }
 
   const stripList: StripInternal[] = []
@@ -166,48 +175,55 @@ function buildSheetLayout(
   for (const piece of sorted) {
     let placed = false
 
-    for (const strip of stripList) {
-      if (piece.widthIn > strip.widthIn) continue  // piece too wide for this rip
-
-      // 1. Try to sub-rip into an existing column (same length offset, stacked by width).
-      //    Only valid if the piece doesn't exceed the column's committed length.
-      for (const col of strip.columns) {
-        if (piece.lengthIn > col.maxLengthIn) continue
-        const spaceNeeded = col.usedWidthIn > 0 ? kerfIn + piece.widthIn : piece.widthIn
-        if (col.usedWidthIn + spaceNeeded <= strip.widthIn + 0.001) {
-          const widthOffsetIn = col.usedWidthIn + (col.usedWidthIn > 0 ? kerfIn : 0)
-          strip.pieces.push({ piece, offsetIn: col.startOffsetIn, widthOffsetIn })
-          col.usedWidthIn += spaceNeeded
-          placed = true
-          break
+    // Tier 1: sub-rip into an existing column — try both orientations before falling through.
+    tier1: for (const { pw, pl, rotated } of orientations(piece)) {
+      for (const strip of stripList) {
+        if (pw > strip.widthIn) continue
+        for (const col of strip.columns) {
+          if (pl > col.maxLengthIn) continue
+          const spaceNeeded = col.usedWidthIn > 0 ? kerfIn + pw : pw
+          if (col.usedWidthIn + spaceNeeded <= strip.widthIn + 0.001) {
+            const widthOffsetIn = col.usedWidthIn + (col.usedWidthIn > 0 ? kerfIn : 0)
+            strip.pieces.push({ piece, offsetIn: col.startOffsetIn, widthOffsetIn, rotated })
+            col.usedWidthIn += spaceNeeded
+            placed = true
+            break tier1
+          }
         }
       }
-      if (placed) break
+    }
 
-      // 2. Try to start a new column at the end of the strip.
-      const kerfBefore = strip.columns.length > 0 ? kerfIn : 0
-      const newColStart = strip.endIn + kerfBefore
-      if (newColStart + piece.lengthIn <= stockLengthIn + 0.001) {
-        strip.columns.push({
-          startOffsetIn: newColStart,
-          maxLengthIn: piece.lengthIn,
-          usedWidthIn: piece.widthIn,
-        })
-        strip.pieces.push({ piece, offsetIn: newColStart, widthOffsetIn: 0 })
-        strip.endIn = newColStart + piece.lengthIn
-        placed = true
-        break
+    if (placed) continue
+
+    // Tier 2: new column in an existing strip — try both orientations.
+    tier2: for (const { pw, pl, rotated } of orientations(piece)) {
+      for (const strip of stripList) {
+        if (pw > strip.widthIn) continue
+        const kerfBefore = strip.columns.length > 0 ? kerfIn : 0
+        const newColStart = strip.endIn + kerfBefore
+        if (newColStart + pl <= stockLengthIn + 0.001) {
+          strip.columns.push({ startOffsetIn: newColStart, maxLengthIn: pl, usedWidthIn: pw })
+          strip.pieces.push({ piece, offsetIn: newColStart, widthOffsetIn: 0, rotated })
+          strip.endIn = newColStart + pl
+          placed = true
+          break tier2
+        }
       }
     }
 
-    if (!placed) {
-      stripList.push({
-        widthIn: piece.widthIn,
-        columns: [{ startOffsetIn: 0, maxLengthIn: piece.lengthIn, usedWidthIn: piece.widthIn }],
-        pieces: [{ piece, offsetIn: 0, widthOffsetIn: 0 }],
-        endIn: piece.lengthIn,
-      })
-    }
+    if (placed) continue
+
+    // Tier 3: new strip — use the orientation with the smallest rip width that fits in stock.
+    const validOrientations = orientations(piece)
+      .filter(({ pw, pl }) => pw <= stockWidthIn && pl <= stockLengthIn)
+      .sort((a, b) => a.pw - b.pw)
+    const { pw, pl, rotated } = validOrientations[0] ?? orientations(piece)[0]
+    stripList.push({
+      widthIn: pw,
+      columns: [{ startOffsetIn: 0, maxLengthIn: pl, usedWidthIn: pw }],
+      pieces: [{ piece, offsetIn: 0, widthOffsetIn: 0, rotated }],
+      endIn: pl,
+    })
   }
 
   // Convert internal strips to external format
