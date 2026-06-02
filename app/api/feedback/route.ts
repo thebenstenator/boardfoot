@@ -55,11 +55,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to send' }, { status: 500 })
   }
 
-  // Record send time so the rate limit applies to subsequent requests.
-  await supabase
-    .from('profiles')
-    .update({ last_feedback_sent_at: new Date().toISOString() })
-    .eq('id', user.id)
+  // Record send time via SECURITY DEFINER RPC — last_feedback_sent_at is a
+  // protected column that authenticated clients cannot write directly.
+  await supabase.rpc('record_feedback_sent', { user_uuid: user.id })
 
   return NextResponse.json({ ok: true })
 }
