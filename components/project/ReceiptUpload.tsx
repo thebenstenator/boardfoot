@@ -82,7 +82,7 @@ export function ReceiptUpload({ projectId, userId }: ReceiptUploadProps) {
 
     const { data: row, error: dbError } = await supabase
       .from("project_receipts")
-      .insert({ project_id: projectId, storage_path: storagePath, description: file.name })
+      .insert({ user_id: userId, project_id: projectId, storage_path: storagePath, description: file.name })
       .select()
       .single();
 

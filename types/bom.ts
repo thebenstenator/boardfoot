@@ -125,7 +125,8 @@ export interface CutPart {
 
 export interface ProjectReceipt {
   id: string
-  project_id: string
+  project_id: string | null
+  user_id: string
   storage_path: string
   description: string
   amount: number | null       // total receipt amount
