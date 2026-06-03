@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -30,6 +31,9 @@ export function CutListButton({ projectId }: CutListButtonProps) {
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col">
+          <DialogClose className="absolute right-4 top-4 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring rounded" aria-label="Close">
+            ✕
+          </DialogClose>
           <DialogHeader>
             <DialogTitle>Cut List</DialogTitle>
             <DialogDescription>
