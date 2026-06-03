@@ -28,7 +28,9 @@ function receiptYear(r: ReceiptRow, fallback: string): string {
 
 export default async function TaxReportPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -42,7 +44,9 @@ export default async function TaxReportPage() {
   const [projectsResult, generalResult] = await Promise.all([
     supabase
       .from("projects")
-      .select("id, name, created_at, project_receipts(id, project_id, amount, tax_amount, receipt_date)")
+      .select(
+        "id, name, created_at, project_receipts(id, project_id, amount, tax_amount, receipt_date)",
+      )
       .eq("user_id", user.id)
       .neq("status", "deleted")
       .order("created_at", { ascending: false }),
@@ -78,7 +82,12 @@ export default async function TaxReportPage() {
 
   function ensureYear(y: string) {
     if (!byYear.has(y)) {
-      byYear.set(y, { projectRows: [], generalCount: 0, generalAmount: 0, generalTax: 0 });
+      byYear.set(y, {
+        projectRows: [],
+        generalCount: 0,
+        generalAmount: 0,
+        generalTax: 0,
+      });
     }
     return byYear.get(y)!;
   }
@@ -141,13 +150,18 @@ export default async function TaxReportPage() {
 
       {years.length === 0 && (
         <p className="text-muted-foreground text-sm">
-          No receipts yet. Use &ldquo;Upload receipt&rdquo; to add your first one, or upload from any{" "}
-          <Link href="/dashboard" className="underline hover:text-foreground">project page</Link>.
+          No receipts yet. Use &ldquo;Upload receipt&rdquo; to add your first
+          one, or upload from any{" "}
+          <Link href="/dashboard" className="underline hover:text-foreground">
+            project page
+          </Link>
+          .
         </p>
       )}
 
       {years.map((year) => {
-        const { projectRows, generalCount, generalAmount, generalTax } = byYear.get(year)!;
+        const { projectRows, generalCount, generalAmount, generalTax } =
+          byYear.get(year)!;
 
         const yearTotalAmount =
           projectRows.reduce((s, p) => s + p.totalAmount, 0) + generalAmount;
@@ -163,16 +177,28 @@ export default async function TaxReportPage() {
             {/* Summary cards */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <div className="border rounded-lg p-3 sm:p-4 space-y-1">
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Receipts</p>
-                <p className="text-lg sm:text-xl font-semibold">{totalReceipts}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">
+                  Receipts
+                </p>
+                <p className="text-lg sm:text-xl font-semibold">
+                  {totalReceipts}
+                </p>
               </div>
               <div className="border rounded-lg p-3 sm:p-4 space-y-1">
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Spend</p>
-                <p className="text-lg sm:text-xl font-semibold">{formatCurrency(yearTotalAmount)}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">
+                  Spend
+                </p>
+                <p className="text-lg sm:text-xl font-semibold">
+                  {formatCurrency(yearTotalAmount)}
+                </p>
               </div>
               <div className="border rounded-lg p-3 sm:p-4 space-y-1">
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Tax paid</p>
-                <p className="text-lg sm:text-xl font-semibold text-primary">{formatCurrency(yearTotalTax)}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">
+                  Tax paid
+                </p>
+                <p className="text-lg sm:text-xl font-semibold text-primary">
+                  {formatCurrency(yearTotalTax)}
+                </p>
               </div>
             </div>
 
@@ -180,11 +206,13 @@ export default async function TaxReportPage() {
             <div className="border rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[440px]">
-                  <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2
-                    bg-muted/40 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  <div
+                    className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2
+                    bg-muted/40 text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                  >
                     <span>Project</span>
                     <span className="text-right">Receipts</span>
-                    <span className="text-right">Spend</span>
+                    <span className="text-right">Total</span>
                     <span className="text-right">Tax paid</span>
                   </div>
 
@@ -193,19 +221,28 @@ export default async function TaxReportPage() {
                       key={p.id}
                       className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5 border-t text-sm items-center"
                     >
-                      <Link href={`/projects/${p.id}`} className="hover:underline truncate">
+                      <Link
+                        href={`/projects/${p.id}`}
+                        className="hover:underline truncate"
+                      >
                         {p.name}
                       </Link>
-                      <span className="text-right text-muted-foreground">{p.receiptCount}</span>
-                      <span className="text-right">
-                        {p.totalAmount > 0
-                          ? formatCurrency(p.totalAmount)
-                          : <span className="text-muted-foreground">—</span>}
+                      <span className="text-right text-muted-foreground">
+                        {p.receiptCount}
                       </span>
                       <span className="text-right">
-                        {p.totalTax > 0
-                          ? formatCurrency(p.totalTax)
-                          : <span className="text-muted-foreground">—</span>}
+                        {p.totalAmount > 0 ? (
+                          formatCurrency(p.totalAmount)
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </span>
+                      <span className="text-right">
+                        {p.totalTax > 0 ? (
+                          formatCurrency(p.totalTax)
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </span>
                     </div>
                   ))}
@@ -213,24 +250,42 @@ export default async function TaxReportPage() {
                   {/* General (unlinked) receipts row */}
                   {generalCount > 0 && (
                     <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5 border-t text-sm items-center">
-                      <span className="text-muted-foreground italic truncate">General (no project)</span>
-                      <span className="text-right text-muted-foreground">{generalCount}</span>
-                      <span className="text-right">
-                        {generalAmount > 0 ? formatCurrency(generalAmount) : <span className="text-muted-foreground">—</span>}
+                      <span className="text-muted-foreground italic truncate">
+                        General (no project)
+                      </span>
+                      <span className="text-right text-muted-foreground">
+                        {generalCount}
                       </span>
                       <span className="text-right">
-                        {generalTax > 0 ? formatCurrency(generalTax) : <span className="text-muted-foreground">—</span>}
+                        {generalAmount > 0 ? (
+                          formatCurrency(generalAmount)
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </span>
+                      <span className="text-right">
+                        {generalTax > 0 ? (
+                          formatCurrency(generalTax)
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </span>
                     </div>
                   )}
 
                   {/* Year totals */}
-                  <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5
-                    border-t bg-muted/20 text-sm font-semibold">
+                  <div
+                    className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5
+                    border-t bg-muted/20 text-sm font-semibold"
+                  >
                     <span>Total</span>
                     <span className="text-right">{totalReceipts}</span>
-                    <span className="text-right">{formatCurrency(yearTotalAmount)}</span>
-                    <span className="text-right text-primary">{formatCurrency(yearTotalTax)}</span>
+                    <span className="text-right">
+                      {formatCurrency(yearTotalAmount)}
+                    </span>
+                    <span className="text-right text-primary">
+                      {formatCurrency(yearTotalTax)}
+                    </span>
                   </div>
                 </div>
               </div>
