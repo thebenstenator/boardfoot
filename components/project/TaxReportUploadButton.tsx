@@ -33,6 +33,8 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
   const [taxAmount, setTaxAmount] = useState("");
   const [receiptDate, setReceiptDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [uploading, setUploading] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanDone, setScanDone] = useState(false);
   const [error, setError] = useState("");
 
   function resetForm() {
@@ -43,6 +45,8 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
     setTaxAmount("");
     setReceiptDate(new Date().toISOString().split("T")[0]);
     setError("");
+    setScanning(false);
+    setScanDone(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -51,7 +55,7 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
     setOpen(true);
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
     if (!f) return;
     const allowed = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
@@ -65,7 +69,24 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
     }
     setError("");
     setFile(f);
-    if (!description) setDescription(f.name);
+    setDescription(f.name);
+    setScanDone(false);
+
+    // Run OCR / PDF text extraction and pre-fill fields
+    setScanning(true);
+    try {
+      const { extractReceiptData } = await import("@/lib/ocr/extractReceiptData");
+      const extracted = await extractReceiptData(f);
+      if (extracted.description) setDescription(extracted.description);
+      if (extracted.amount != null) setAmount(String(extracted.amount));
+      if (extracted.taxAmount != null) setTaxAmount(String(extracted.taxAmount));
+      if (extracted.receiptDate) setReceiptDate(extracted.receiptDate);
+      setScanDone(true);
+    } catch {
+      // Silent — user fills in manually
+    } finally {
+      setScanning(false);
+    }
   }
 
   async function handleUpload() {
@@ -159,7 +180,7 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="cursor-pointer text-sm border rounded px-3 py-1.5 hover:bg-accent transition-colors"
+                  className="cursor-pointer text-sm border rounded px-3 py-1.5 hover:bg-accent transition-colors shrink-0"
                 >
                   Choose file
                 </button>
@@ -174,6 +195,13 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
                 onChange={handleFileChange}
                 className="hidden"
               />
+              <p className="text-xs text-muted-foreground">
+                {scanning
+                  ? "Scanning receipt…"
+                  : scanDone
+                  ? "Auto-filled — verify before saving."
+                  : "Fields auto-fill on select — verify before saving."}
+              </p>
             </div>
 
             {/* Description */}
@@ -236,11 +264,11 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
               </button>
               <button
                 onClick={handleUpload}
-                disabled={uploading}
+                disabled={uploading || scanning}
                 className="cursor-pointer text-sm rounded px-4 py-1.5 bg-primary text-primary-foreground
                   hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {uploading ? "Uploading…" : "Upload"}
+                {uploading ? "Uploading…" : scanning ? "Scanning…" : "Upload"}
               </button>
             </div>
           </div>
