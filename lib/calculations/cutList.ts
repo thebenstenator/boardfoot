@@ -354,9 +354,11 @@ export function buildCutList(
   for (const [key, { label, stockWidthIn, stockLengthIn, pieces }] of groupMap) {
     const isSheet = stockWidthIn >= 24
 
-    // Ripping is worthwhile when pieces are narrow enough that 2+ fit across the stock width
-    const maxPieceWidth = pieces.length > 0 ? Math.max(...pieces.map((p) => p.widthIn)) : 0
-    const hasRipping = !isSheet && pieces.length > 0 && maxPieceWidth * 2 + kerfIn <= stockWidthIn
+    // Ripping is worthwhile when at least two of the narrowest pieces fit side-by-side.
+    // Using minPieceWidth (not max) means a group with mixed widths still gets the 2D
+    // layout so narrow pieces can be stacked even when wide pieces cannot be doubled.
+    const minPieceWidth = pieces.length > 0 ? Math.min(...pieces.map((p) => p.widthIn)) : 0
+    const hasRipping = !isSheet && pieces.length > 0 && minPieceWidth * 2 + kerfIn <= stockWidthIn
 
     let layout: BoardLayout | SheetLayout
     if (isSheet || hasRipping) {
