@@ -157,7 +157,7 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
             <DialogTitle>Upload Receipt</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 pt-2">
+          <div className="space-y-4 px-4 pb-6">
             {/* Project selector */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Project</label>
