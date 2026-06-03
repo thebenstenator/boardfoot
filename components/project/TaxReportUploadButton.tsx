@@ -180,7 +180,8 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="cursor-pointer text-sm border rounded px-3 py-1.5 hover:bg-accent transition-colors shrink-0"
+                  className="cursor-pointer text-sm border-2 border-primary rounded px-3 py-1.5
+                    text-primary font-medium hover:bg-primary/10 transition-colors shrink-0"
                 >
                   Choose file
                 </button>
@@ -195,7 +196,7 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
                 onChange={handleFileChange}
                 className="hidden"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-primary/80">
                 {scanning
                   ? "Scanning receipt…"
                   : scanDone
