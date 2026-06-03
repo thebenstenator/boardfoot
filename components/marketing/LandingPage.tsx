@@ -40,7 +40,7 @@ export function LandingPage() {
         {/* Hero */}
         <section className="relative z-10 max-w-5xl mx-auto px-4 py-24 text-center space-y-6">
           <div className="inline-block bg-white/10 text-white text-xs font-medium px-3 py-1 rounded-full border border-white/20">
-            Free to start — no credit card required
+            Free to start, no credit card required
           </div>
           <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-white">
             Measure twice,
@@ -79,7 +79,7 @@ export function LandingPage() {
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Most woodworkers plan projects in their head or on a napkin, show up
-            at the lumber yard, and end up buying too much — or worse, not
+            at the lumber yard, and end up buying too much, or worse, not
             enough. BoardFoot gives you a complete cost estimate before you
             spend a dollar.
           </p>
@@ -97,7 +97,7 @@ export function LandingPage() {
               icon: "📐",
               title: "Accurate board foot math",
               description:
-                "Automatic board foot calculations with nominal-to-actual conversion. Waste factor uses margin math, not additive markup — so you actually buy enough.",
+                "Automatic board foot calculations with nominal-to-actual conversion. Waste factor uses margin math, not additive markup, so you actually buy enough.",
             },
             {
               icon: "🔩",
@@ -218,7 +218,7 @@ export function LandingPage() {
                   "Labor & overhead tracking",
                   "Suggested retail + Etsy pricing",
                   "Unlimited photo attachments",
-                  "Receipt uploads with OCR auto-fill",
+                  "Receipt uploads with auto-fill from photos & PDFs",
                   "Expense dashboard for year-end tax filing",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
