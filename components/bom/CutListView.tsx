@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useCutParts } from '@/hooks/useLineItems'
 import { useProjectStore } from '@/store/projectStore'
 import { buildCutList } from '@/lib/calculations/cutList'
@@ -30,47 +30,55 @@ interface CutListViewProps {
 
 // ─── Board Layout Diagram ──────────────────────────────────────────────────────
 
-function BoardLayoutView({ layout }: { layout: BoardLayout }) {
+function BoardLayoutView({ layout, stockWidthIn }: { layout: BoardLayout; stockWidthIn: number }) {
   return (
     <div className="space-y-2">
-      {layout.boards.map((board) => (
-        <div key={board.index} className="space-y-1">
-          <span className="text-xs text-muted-foreground">Board {board.index}</span>
-          <div className="relative h-10 w-full rounded overflow-hidden bg-muted flex">
-            {board.segments.map((seg, i) => {
-              if ('type' in seg && seg.type === 'waste') {
+      {layout.boards.map((board) => {
+        const totalLen = board.segments.reduce((s, x) => s + x.lengthIn, 0)
+        return (
+          <div key={board.index} className="space-y-1">
+            <span className="text-xs text-muted-foreground">Board {board.index}</span>
+            <div className="relative h-10 w-full rounded overflow-hidden bg-muted flex">
+              {board.segments.map((seg, i) => {
+                if ('type' in seg && seg.type === 'waste') {
+                  return (
+                    <div
+                      key={i}
+                      className="h-full bg-muted-foreground/20 flex items-center justify-center shrink-0"
+                      style={{ width: `${(seg.lengthIn / totalLen) * 100}%` }}
+                    >
+                      <span className="text-[10px] text-muted-foreground">
+                        {seg.lengthIn.toFixed(1)}&quot; waste
+                      </span>
+                    </div>
+                  )
+                }
+                const cut = seg as { piece: CutPiece; lengthIn: number }
+                const widthPct = (cut.lengthIn / totalLen) * 100
+                const heightPct = Math.min(100, (cut.piece.widthIn / stockWidthIn) * 100)
+                const color = COLORS[cut.piece.colorIndex % COLORS.length]
                 return (
                   <div
                     key={i}
-                    className="h-full bg-muted-foreground/20 flex items-center justify-center shrink-0"
-                    style={{ width: `${(seg.lengthIn / (board.segments.reduce((s, x) => s + x.lengthIn, 0))) * 100}%` }}
+                    className="relative shrink-0 h-full"
+                    style={{ width: `${widthPct}%` }}
                   >
-                    <span className="text-[10px] text-muted-foreground">
-                      {seg.lengthIn.toFixed(1)}&quot; waste
-                    </span>
+                    <div
+                      className={`${color} absolute bottom-0 left-0 right-0 flex items-center justify-center overflow-hidden`}
+                      style={{ height: `${heightPct}%` }}
+                      title={`${cut.piece.label} — ${cut.lengthIn.toFixed(1)}" × ${cut.piece.widthIn.toFixed(1)}"`}
+                    >
+                      <span className="text-[10px] font-medium px-1 truncate text-white">
+                        {cut.piece.label ? `${cut.piece.label} — ` : ''}{cut.lengthIn.toFixed(1)}&quot;
+                      </span>
+                    </div>
                   </div>
                 )
-              }
-              const cut = seg as { piece: CutPiece; lengthIn: number }
-              const totalIn = board.segments.reduce((s, x) => s + x.lengthIn, 0)
-              const widthPct = (cut.lengthIn / totalIn) * 100
-              const color = COLORS[cut.piece.colorIndex % COLORS.length]
-              return (
-                <div
-                  key={i}
-                  className={`${color} h-full flex items-center justify-center overflow-hidden shrink-0`}
-                  style={{ width: `${widthPct}%` }}
-                  title={`${cut.piece.label} — ${cut.lengthIn.toFixed(1)}"`}
-                >
-                  <span className="text-[10px] font-medium px-1 truncate text-white">
-                    {cut.piece.label ? `${cut.piece.label} — ` : ''}{cut.lengthIn.toFixed(1)}&quot;
-                  </span>
-                </div>
-              )
-            })}
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -193,6 +201,19 @@ export function CutListView({ projectId }: CutListViewProps) {
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null)
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null)
   const [sort, setSort] = useState<SortState>(null)
+  const [showAddMenu, setShowAddMenu] = useState(false)
+  const addMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showAddMenu) return
+    function handler(e: MouseEvent) {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
+        setShowAddMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showAddMenu])
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
@@ -251,6 +272,20 @@ export function CutListView({ projectId }: CutListViewProps) {
     })
   }
 
+  function openAddMenu() {
+    if (lumberItems.length === 0) {
+      addItem()
+    } else {
+      setShowAddMenu((prev) => !prev)
+    }
+  }
+
+  async function handleAddWithStock(lumberItemId: string | null) {
+    setShowAddMenu(false)
+    const li = lumberItemId ? lumberItems.find((l) => l.id === lumberItemId) : null
+    await addItem({ lumberItemId: lumberItemId ?? undefined, thickness: li?.thickness_in })
+  }
+
   function handleUpdate(id: string, field: keyof CutPart, raw: string) {
     const numericFields: Array<keyof CutPart> = [
       'thickness_in', 'width_in', 'length_in', 'quantity',
@@ -289,7 +324,28 @@ export function CutListView({ projectId }: CutListViewProps) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Parts List</h2>
-          <Button size="sm" onClick={addItem}>+ Add part</Button>
+          <div ref={addMenuRef} className="relative">
+            <Button size="sm" onClick={openAddMenu}>+ Add part</Button>
+            {showAddMenu && (
+              <div className="absolute right-0 top-full mt-1 z-10 bg-background border border-border rounded-md shadow-lg min-w-[160px] py-1">
+                <button
+                  className="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
+                  onClick={() => handleAddWithStock(null)}
+                >
+                  Manual
+                </button>
+                {lumberItems.map((li) => (
+                  <button
+                    key={li.id}
+                    className="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
+                    onClick={() => handleAddWithStock(li.id)}
+                  >
+                    {li.species?.trim() ? li.species : `${li.thickness_in}" × ${li.width_in}"`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
@@ -461,7 +517,7 @@ export function CutListView({ projectId }: CutListViewProps) {
 
             {/* Ghost row — click to add */}
             <div
-              onClick={addItem}
+              onClick={openAddMenu}
               className="flex items-center w-full gap-3 py-2 border-b border-dashed
                 text-sm text-muted-foreground/40 hover:text-muted-foreground/70
                 hover:bg-muted/20 cursor-pointer select-none transition-colors"
@@ -527,7 +583,7 @@ export function CutListView({ projectId }: CutListViewProps) {
                   </div>
 
                   {group.layout.type === 'board' ? (
-                    <BoardLayoutView layout={group.layout as BoardLayout} />
+                    <BoardLayoutView layout={group.layout as BoardLayout} stockWidthIn={group.stockWidthIn} />
                   ) : (
                     <SheetLayoutView layout={group.layout as SheetLayout} group={group} boardMode={!group.isSheet} />
                   )}

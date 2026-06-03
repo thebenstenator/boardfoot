@@ -423,17 +423,18 @@ export function useCutParts(projectId: string) {
   const supabase = createClient();
   const pendingDeletes = useRef<Map<string, { item: CutPart; timeout: ReturnType<typeof setTimeout> }>>(new Map());
 
-  const addItem = useCallback(async () => {
-    const newItem = {
+  const addItem = useCallback(async (options?: { lumberItemId?: string; thickness?: number }) => {
+    const newItem: Record<string, unknown> = {
       project_id: projectId,
       label: "",
-      thickness_in: 0.75,
+      thickness_in: options?.thickness ?? 0.75,
       width_in: 3.5,
       length_in: 24,
       quantity: 1,
       notes: "",
       sort_order: cutParts.length,
     };
+    if (options?.lumberItemId) newItem.lumber_item_id = options.lumberItemId;
     const { data, error } = await supabase.from("cut_parts").insert(newItem).select().single();
     if (error) { console.error("Failed to add cut part:", error); return; }
     addCutPart(data as CutPart);
