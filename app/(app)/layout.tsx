@@ -70,7 +70,7 @@ export default async function AppLayout({
                 href="/reports/taxes"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Tax Report
+                Expenses
               </Link>
             )}
           </div>

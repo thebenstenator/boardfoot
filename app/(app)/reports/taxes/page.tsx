@@ -131,9 +131,9 @@ export default async function TaxReportPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Tax Report</h1>
+          <h1 className="text-2xl font-bold">Expenses</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Track purchase taxes paid across projects. Upload receipts here or from each project page.
+            Track purchase receipts and taxes paid. Use for year-end filing.
           </p>
         </div>
         <TaxReportUploadButton userId={user.id} projects={projectsForModal} />
@@ -141,7 +141,7 @@ export default async function TaxReportPage() {
 
       {years.length === 0 && (
         <p className="text-muted-foreground text-sm">
-          No receipts yet. Use &ldquo;+ Upload receipt&rdquo; to add your first one, or upload from any{" "}
+          No receipts yet. Use &ldquo;Upload receipt&rdquo; to add your first one, or upload from any{" "}
           <Link href="/dashboard" className="underline hover:text-foreground">project page</Link>.
         </p>
       )}
@@ -161,41 +161,41 @@ export default async function TaxReportPage() {
             <h2 className="text-lg font-semibold">{year}</h2>
 
             {/* Summary cards */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="border rounded-lg p-4 space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Receipts</p>
-                <p className="text-xl font-semibold">{totalReceipts}</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <div className="border rounded-lg p-3 sm:p-4 space-y-1">
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Receipts</p>
+                <p className="text-lg sm:text-xl font-semibold">{totalReceipts}</p>
               </div>
-              <div className="border rounded-lg p-4 space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Total spend</p>
-                <p className="text-xl font-semibold">{formatCurrency(yearTotalAmount)}</p>
+              <div className="border rounded-lg p-3 sm:p-4 space-y-1">
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Spend</p>
+                <p className="text-lg sm:text-xl font-semibold">{formatCurrency(yearTotalAmount)}</p>
               </div>
-              <div className="border rounded-lg p-4 space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Taxes paid</p>
-                <p className="text-xl font-semibold text-primary">{formatCurrency(yearTotalTax)}</p>
+              <div className="border rounded-lg p-3 sm:p-4 space-y-1">
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Tax paid</p>
+                <p className="text-lg sm:text-xl font-semibold text-primary">{formatCurrency(yearTotalTax)}</p>
               </div>
             </div>
 
-            {/* Breakdown table */}
+            {/* Breakdown table — 2 cols on mobile, 4 on sm+ */}
             <div className="border rounded-lg overflow-hidden">
-              <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2
+              <div className="grid grid-cols-[1fr_90px] sm:grid-cols-[1fr_80px_90px_90px] gap-2 sm:gap-3 px-3 sm:px-4 py-2
                 bg-muted/40 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 <span>Project</span>
-                <span className="text-right">Receipts</span>
-                <span className="text-right">Spend</span>
+                <span className="hidden sm:block text-right">Receipts</span>
+                <span className="hidden sm:block text-right">Spend</span>
                 <span className="text-right">Tax paid</span>
               </div>
 
               {projectRows.map((p) => (
                 <div
                   key={p.id}
-                  className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5 border-t text-sm items-center"
+                  className="grid grid-cols-[1fr_90px] sm:grid-cols-[1fr_80px_90px_90px] gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 border-t text-sm items-center"
                 >
                   <Link href={`/projects/${p.id}`} className="hover:underline truncate">
                     {p.name}
                   </Link>
-                  <span className="text-right text-muted-foreground">{p.receiptCount}</span>
-                  <span className="text-right">
+                  <span className="hidden sm:block text-right text-muted-foreground">{p.receiptCount}</span>
+                  <span className="hidden sm:block text-right">
                     {p.totalAmount > 0
                       ? formatCurrency(p.totalAmount)
                       : <span className="text-muted-foreground">—</span>}
@@ -210,10 +210,10 @@ export default async function TaxReportPage() {
 
               {/* General (unlinked) receipts row */}
               {generalCount > 0 && (
-                <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5 border-t text-sm items-center">
-                  <span className="text-muted-foreground italic">General (no project)</span>
-                  <span className="text-right text-muted-foreground">{generalCount}</span>
-                  <span className="text-right">
+                <div className="grid grid-cols-[1fr_90px] sm:grid-cols-[1fr_80px_90px_90px] gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 border-t text-sm items-center">
+                  <span className="text-muted-foreground italic truncate">General (no project)</span>
+                  <span className="hidden sm:block text-right text-muted-foreground">{generalCount}</span>
+                  <span className="hidden sm:block text-right">
                     {generalAmount > 0 ? formatCurrency(generalAmount) : <span className="text-muted-foreground">—</span>}
                   </span>
                   <span className="text-right">
@@ -223,11 +223,11 @@ export default async function TaxReportPage() {
               )}
 
               {/* Year totals */}
-              <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5
+              <div className="grid grid-cols-[1fr_90px] sm:grid-cols-[1fr_80px_90px_90px] gap-2 sm:gap-3 px-3 sm:px-4 py-2.5
                 border-t bg-muted/20 text-sm font-semibold">
                 <span>Total</span>
-                <span className="text-right">{totalReceipts}</span>
-                <span className="text-right">{formatCurrency(yearTotalAmount)}</span>
+                <span className="hidden sm:block text-right">{totalReceipts}</span>
+                <span className="hidden sm:block text-right">{formatCurrency(yearTotalAmount)}</span>
                 <span className="text-right text-primary">{formatCurrency(yearTotalTax)}</span>
               </div>
             </div>

@@ -122,9 +122,9 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
       <button
         onClick={handleOpen}
         className="cursor-pointer text-sm border rounded px-3 py-1.5
-          hover:bg-accent transition-colors font-medium"
+          hover:bg-accent transition-colors font-medium shrink-0"
       >
-        + Upload receipt
+        Upload receipt
       </button>
 
       <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); setOpen(v); }}>
