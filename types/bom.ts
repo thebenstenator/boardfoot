@@ -121,6 +121,20 @@ export interface CutPart {
   stock_length_in: number | null  // length of raw stock (e.g. 96 for 8ft)
 }
 
+// ─── Receipts ─────────────────────────────────────────────────────────────────
+
+export interface ProjectReceipt {
+  id: string
+  project_id: string
+  storage_path: string
+  description: string
+  amount: number | null       // total receipt amount
+  tax_amount: number | null   // taxes paid on this receipt
+  receipt_date: string | null // ISO date string
+  created_at: string
+  url?: string                // signed URL, populated client-side
+}
+
 // ─── Computed Totals ──────────────────────────────────────────────────────────
 
 export interface LumberTotals {

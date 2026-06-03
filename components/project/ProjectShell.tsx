@@ -11,6 +11,7 @@ import { ExportButton } from "@/components/bom/ExportButton";
 import { LaborSection } from "@/components/bom/LaborSection";
 import { ShoppingListButton } from "@/components/bom/ShoppingListbutton";
 import { PhotoGallery } from "@/components/project/PhotoGallery";
+import { ReceiptUpload } from "@/components/project/ReceiptUpload";
 import { CutListButton } from "@/components/bom/CutListButton";
 
 import type { Project, LumberItem, HardwareItem, FinishItem, CutPart, ProjectLabor } from "@/types/bom";
@@ -298,6 +299,7 @@ export function ProjectShell({ projectId, userId, initialData }: ProjectShellPro
           <FinishSection projectId={projectId} />
           <LaborSection projectId={projectId} />
           <PhotoGallery projectId={projectId} userId={userId} />
+          <ReceiptUpload projectId={projectId} userId={userId} />
         </div>
         <div className="lg:sticky lg:top-8">
           <CostSummary />

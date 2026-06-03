@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserStore } from "@/store/userStore";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,24 @@ export default function OverheadPage() {
   const [taxRate, setTaxRate] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const taxInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (profile) {
       setHourlyRate(String(profile.hourly_rate));
       setMonthlyOverhead(String(profile.monthly_overhead));
       setProjectsPerMonth(String(profile.projects_per_month));
-      setTaxRate(String(Math.round(profile.tax_rate * 100)));
+      setTaxRate(String(parseFloat((profile.tax_rate * 100).toFixed(3))));
+    }
+  }, [profile]);
+
+  // Auto-focus tax input when navigated from cost summary
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#tax-rate' && profile) {
+      setTimeout(() => {
+        taxInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        taxInputRef.current?.focus();
+      }, 150);
     }
   }, [profile]);
 
@@ -126,13 +137,14 @@ export default function OverheadPage() {
         )}
       </div>
 
-      <div className="border rounded-lg p-6 space-y-4">
+      <div id="tax-rate" className="border rounded-lg p-6 space-y-4">
         <h2 className="font-semibold">Tax</h2>
 
         <div className="space-y-2">
           <Label htmlFor="taxRate">Sales tax rate (%)</Label>
           <Input
             id="taxRate"
+            ref={taxInputRef}
             type="number"
             value={taxRate}
             onChange={(e) => setTaxRate(e.target.value)}

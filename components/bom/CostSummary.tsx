@@ -33,7 +33,7 @@ export function CostSummary() {
   }
 
   function formatPercent(n: number) {
-    return `${Math.round(n * 100)}%`
+    return `${parseFloat((n * 100).toFixed(3))}%`
   }
 
   const taxRate = profile.tax_rate
@@ -154,11 +154,24 @@ export function CostSummary() {
             muted
           />
         )}
-        {taxRate > 0 && (
-          <SummaryRow
-            label={`With tax (${formatPercent(taxRate)})`}
-            value={formatCurrency(totals.withTax)}
-          />
+        {taxRate > 0 ? (
+          <div className="flex justify-between items-center text-sm">
+            <a
+              href="/settings/overhead#tax-rate"
+              className="text-muted-foreground hover:text-foreground hover:underline underline-offset-2"
+              title="Edit tax rate in shop settings"
+            >
+              With tax ({formatPercent(taxRate)})
+            </a>
+            <span>{formatCurrency(totals.withTax)}</span>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center text-sm text-muted-foreground">
+            <span>With tax</span>
+            <a href="/settings/overhead#tax-rate" className="text-xs underline hover:text-foreground">
+              Set tax rate
+            </a>
+          </div>
         )}
         <SummaryRow
           label={`Suggested retail (${formatPercent(targetMargin)} margin)`}

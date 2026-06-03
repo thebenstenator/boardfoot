@@ -5,6 +5,7 @@ export const PLAN_LIMITS = {
     pdfExport: "branded" as const,
     laborTracking: false,
     shoppingListExport: false,
+    receiptUpload: false,
   },
   pro: {
     maxProjects: Infinity,
@@ -12,6 +13,7 @@ export const PLAN_LIMITS = {
     pdfExport: "clean" as const,
     laborTracking: true,
     shoppingListExport: true,
+    receiptUpload: true,
   },
 } as const;
 

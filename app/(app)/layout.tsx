@@ -65,6 +65,14 @@ export default async function AppLayout({
             >
               Templates
             </Link>
+            {isPro && (
+              <Link
+                href="/reports/taxes"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Tax Report
+              </Link>
+            )}
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
