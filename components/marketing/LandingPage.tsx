@@ -218,6 +218,8 @@ export function LandingPage() {
                   "Labor & overhead tracking",
                   "Suggested retail + Etsy pricing",
                   "Unlimited photo attachments",
+                  "Receipt uploads with OCR auto-fill",
+                  "Expense dashboard for year-end tax filing",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <span className="text-green-500">✓</span>
