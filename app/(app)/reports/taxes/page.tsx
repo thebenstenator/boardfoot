@@ -176,59 +176,63 @@ export default async function TaxReportPage() {
               </div>
             </div>
 
-            {/* Breakdown table — 2 cols on mobile, 4 on sm+ */}
+            {/* Breakdown table — horizontally scrollable on mobile */}
             <div className="border rounded-lg overflow-hidden">
-              <div className="grid grid-cols-[1fr_90px] sm:grid-cols-[1fr_80px_90px_90px] gap-2 sm:gap-3 px-3 sm:px-4 py-2
-                bg-muted/40 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                <span>Project</span>
-                <span className="hidden sm:block text-right">Receipts</span>
-                <span className="hidden sm:block text-right">Spend</span>
-                <span className="text-right">Tax paid</span>
-              </div>
+              <div className="overflow-x-auto">
+                <div className="min-w-[440px]">
+                  <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2
+                    bg-muted/40 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    <span>Project</span>
+                    <span className="text-right">Receipts</span>
+                    <span className="text-right">Spend</span>
+                    <span className="text-right">Tax paid</span>
+                  </div>
 
-              {projectRows.map((p) => (
-                <div
-                  key={p.id}
-                  className="grid grid-cols-[1fr_90px] sm:grid-cols-[1fr_80px_90px_90px] gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 border-t text-sm items-center"
-                >
-                  <Link href={`/projects/${p.id}`} className="hover:underline truncate">
-                    {p.name}
-                  </Link>
-                  <span className="hidden sm:block text-right text-muted-foreground">{p.receiptCount}</span>
-                  <span className="hidden sm:block text-right">
-                    {p.totalAmount > 0
-                      ? formatCurrency(p.totalAmount)
-                      : <span className="text-muted-foreground">—</span>}
-                  </span>
-                  <span className="text-right">
-                    {p.totalTax > 0
-                      ? formatCurrency(p.totalTax)
-                      : <span className="text-muted-foreground">—</span>}
-                  </span>
+                  {projectRows.map((p) => (
+                    <div
+                      key={p.id}
+                      className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5 border-t text-sm items-center"
+                    >
+                      <Link href={`/projects/${p.id}`} className="hover:underline truncate">
+                        {p.name}
+                      </Link>
+                      <span className="text-right text-muted-foreground">{p.receiptCount}</span>
+                      <span className="text-right">
+                        {p.totalAmount > 0
+                          ? formatCurrency(p.totalAmount)
+                          : <span className="text-muted-foreground">—</span>}
+                      </span>
+                      <span className="text-right">
+                        {p.totalTax > 0
+                          ? formatCurrency(p.totalTax)
+                          : <span className="text-muted-foreground">—</span>}
+                      </span>
+                    </div>
+                  ))}
+
+                  {/* General (unlinked) receipts row */}
+                  {generalCount > 0 && (
+                    <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5 border-t text-sm items-center">
+                      <span className="text-muted-foreground italic truncate">General (no project)</span>
+                      <span className="text-right text-muted-foreground">{generalCount}</span>
+                      <span className="text-right">
+                        {generalAmount > 0 ? formatCurrency(generalAmount) : <span className="text-muted-foreground">—</span>}
+                      </span>
+                      <span className="text-right">
+                        {generalTax > 0 ? formatCurrency(generalTax) : <span className="text-muted-foreground">—</span>}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Year totals */}
+                  <div className="grid grid-cols-[1fr_80px_90px_90px] gap-3 px-4 py-2.5
+                    border-t bg-muted/20 text-sm font-semibold">
+                    <span>Total</span>
+                    <span className="text-right">{totalReceipts}</span>
+                    <span className="text-right">{formatCurrency(yearTotalAmount)}</span>
+                    <span className="text-right text-primary">{formatCurrency(yearTotalTax)}</span>
+                  </div>
                 </div>
-              ))}
-
-              {/* General (unlinked) receipts row */}
-              {generalCount > 0 && (
-                <div className="grid grid-cols-[1fr_90px] sm:grid-cols-[1fr_80px_90px_90px] gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 border-t text-sm items-center">
-                  <span className="text-muted-foreground italic truncate">General (no project)</span>
-                  <span className="hidden sm:block text-right text-muted-foreground">{generalCount}</span>
-                  <span className="hidden sm:block text-right">
-                    {generalAmount > 0 ? formatCurrency(generalAmount) : <span className="text-muted-foreground">—</span>}
-                  </span>
-                  <span className="text-right">
-                    {generalTax > 0 ? formatCurrency(generalTax) : <span className="text-muted-foreground">—</span>}
-                  </span>
-                </div>
-              )}
-
-              {/* Year totals */}
-              <div className="grid grid-cols-[1fr_90px] sm:grid-cols-[1fr_80px_90px_90px] gap-2 sm:gap-3 px-3 sm:px-4 py-2.5
-                border-t bg-muted/20 text-sm font-semibold">
-                <span>Total</span>
-                <span className="hidden sm:block text-right">{totalReceipts}</span>
-                <span className="hidden sm:block text-right">{formatCurrency(yearTotalAmount)}</span>
-                <span className="text-right text-primary">{formatCurrency(yearTotalTax)}</span>
               </div>
             </div>
           </div>

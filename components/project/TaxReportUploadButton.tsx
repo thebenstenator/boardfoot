@@ -31,7 +31,7 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [taxAmount, setTaxAmount] = useState("");
-  const [receiptDate, setReceiptDate] = useState("");
+  const [receiptDate, setReceiptDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,7 +41,7 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
     setDescription("");
     setAmount("");
     setTaxAmount("");
-    setReceiptDate("");
+    setReceiptDate(new Date().toISOString().split("T")[0]);
     setError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
