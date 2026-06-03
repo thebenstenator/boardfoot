@@ -201,19 +201,21 @@ export function CutListView({ projectId }: CutListViewProps) {
   const [undoState, setUndoState] = useState<{ id: string; label: string; index: number } | null>(null)
   const undoTimerRef = useState<ReturnType<typeof setTimeout> | null>(null)
   const [sort, setSort] = useState<SortState>(null)
-  const [showAddMenu, setShowAddMenu] = useState(false)
-  const addMenuRef = useRef<HTMLDivElement>(null)
+  const [addMenuSource, setAddMenuSource] = useState<'button' | 'ghost' | null>(null)
+  const buttonMenuRef = useRef<HTMLDivElement>(null)
+  const ghostMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!showAddMenu) return
+    if (!addMenuSource) return
     function handler(e: MouseEvent) {
-      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
-        setShowAddMenu(false)
+      const ref = addMenuSource === 'button' ? buttonMenuRef : ghostMenuRef
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setAddMenuSource(null)
       }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [showAddMenu])
+  }, [addMenuSource])
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
@@ -272,19 +274,39 @@ export function CutListView({ projectId }: CutListViewProps) {
     })
   }
 
-  function openAddMenu() {
+  function openMenu(source: 'button' | 'ghost') {
     if (lumberItems.length === 0) {
       addItem()
     } else {
-      setShowAddMenu((prev) => !prev)
+      setAddMenuSource((prev) => (prev === source ? null : source))
     }
   }
 
   async function handleAddWithStock(lumberItemId: string | null) {
-    setShowAddMenu(false)
+    setAddMenuSource(null)
     const li = lumberItemId ? lumberItems.find((l) => l.id === lumberItemId) : null
     await addItem({ lumberItemId: lumberItemId ?? undefined, thickness: li?.thickness_in })
   }
+
+  const stockMenuItems = (
+    <>
+      <button
+        className="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
+        onClick={() => handleAddWithStock(null)}
+      >
+        Manual
+      </button>
+      {lumberItems.map((li) => (
+        <button
+          key={li.id}
+          className="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
+          onClick={() => handleAddWithStock(li.id)}
+        >
+          {li.species?.trim() ? li.species : `${li.thickness_in}" × ${li.width_in}"`}
+        </button>
+      ))}
+    </>
+  )
 
   function handleUpdate(id: string, field: keyof CutPart, raw: string) {
     const numericFields: Array<keyof CutPart> = [
@@ -324,25 +346,11 @@ export function CutListView({ projectId }: CutListViewProps) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Parts List</h2>
-          <div ref={addMenuRef} className="relative">
-            <Button size="sm" onClick={openAddMenu}>+ Add part</Button>
-            {showAddMenu && (
+          <div ref={buttonMenuRef} className="relative">
+            <Button size="sm" onClick={() => openMenu('button')}>+ Add part</Button>
+            {addMenuSource === 'button' && (
               <div className="absolute right-0 top-full mt-1 z-10 bg-background border border-border rounded-md shadow-lg min-w-[160px] py-1">
-                <button
-                  className="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
-                  onClick={() => handleAddWithStock(null)}
-                >
-                  Manual
-                </button>
-                {lumberItems.map((li) => (
-                  <button
-                    key={li.id}
-                    className="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
-                    onClick={() => handleAddWithStock(li.id)}
-                  >
-                    {li.species?.trim() ? li.species : `${li.thickness_in}" × ${li.width_in}"`}
-                  </button>
-                ))}
+                {stockMenuItems}
               </div>
             )}
           </div>
@@ -516,22 +524,29 @@ export function CutListView({ projectId }: CutListViewProps) {
             )}
 
             {/* Ghost row — click to add */}
-            <div
-              onClick={openAddMenu}
-              className="flex items-center w-full gap-3 py-2 border-b border-dashed
-                text-sm text-muted-foreground/40 hover:text-muted-foreground/70
-                hover:bg-muted/20 cursor-pointer select-none transition-colors"
-            >
-              <span className={col.md}>+ Add part</span>
-              <span className={col.lg}></span>
-              <span className={col.sm}></span>
-              <span className={col.sm}></span>
-              <span className={col.sm}></span>
-              <span className={col.sm}></span>
-              <span className={col.sm}></span>
-              <span className={col.sm}></span>
-              <span className={col.reorder}></span>
-              <span className={col.delete}></span>
+            <div ref={ghostMenuRef} className="relative">
+              <div
+                onClick={() => openMenu('ghost')}
+                className="flex items-center w-full gap-3 py-2 border-b border-dashed
+                  text-sm text-muted-foreground/40 hover:text-muted-foreground/70
+                  hover:bg-muted/20 cursor-pointer select-none transition-colors"
+              >
+                <span className={col.md}>+ Add part</span>
+                <span className={col.lg}></span>
+                <span className={col.sm}></span>
+                <span className={col.sm}></span>
+                <span className={col.sm}></span>
+                <span className={col.sm}></span>
+                <span className={col.sm}></span>
+                <span className={col.sm}></span>
+                <span className={col.reorder}></span>
+                <span className={col.delete}></span>
+              </div>
+              {addMenuSource === 'ghost' && (
+                <div className="absolute left-0 top-full mt-1 z-10 bg-background border border-border rounded-md shadow-lg min-w-[160px] py-1">
+                  {stockMenuItems}
+                </div>
+              )}
             </div>
 
           </div>
