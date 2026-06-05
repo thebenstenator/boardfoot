@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useUserStore } from "@/store/userStore";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,12 @@ export default function OverheadPage() {
       </div>
 
       <div className="border rounded-lg p-6 space-y-4">
-        <h2 className="font-semibold">Labor</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="font-semibold">Labor</h2>
+          <Link href="/settings/billing" className="text-xs text-muted-foreground hover:text-foreground">
+            Pro feature — set now, activates on upgrade
+          </Link>
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="hourlyRate">Default hourly rate ($)</Label>

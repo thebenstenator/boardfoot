@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { UserMenu } from "@/components/shared/UserMenu";
 import { PWAInstallButton } from "@/components/shared/PWAInstallButton";
+import { Toaster } from "sonner";
 
 function getInitials(name: string | null, email: string | null): string {
   if (name) {
@@ -87,6 +88,7 @@ export default async function AppLayout({
         </div>
       </header>
       <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
+      <Toaster richColors position="bottom-right" />
     </div>
   );
 }

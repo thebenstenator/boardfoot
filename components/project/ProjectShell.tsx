@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useProjectStore } from "@/store/projectStore";
 import { createClient } from "@/lib/supabase/client";
 import { LumberSection } from "@/components/bom/LumberSection";
@@ -124,8 +125,14 @@ export function ProjectShell({ projectId, userId, initialData }: ProjectShellPro
 
   if (!project) {
     return (
-      <div className="py-16 text-center text-muted-foreground">
-        Project not found.
+      <div className="py-16 text-center space-y-3">
+        <p className="text-lg font-semibold">Project not found</p>
+        <p className="text-sm text-muted-foreground">
+          This project may have been deleted or you don&apos;t have access to it.
+        </p>
+        <Link href="/dashboard" className="text-sm text-primary hover:underline">
+          Back to dashboard
+        </Link>
       </div>
     );
   }
