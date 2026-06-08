@@ -385,20 +385,33 @@ function ProjectCard({
 
       {!isRenaming && (
         <>
-          {/* Mobile: trash icon always visible */}
-          <button
-            onClick={(e) => { e.preventDefault(); onDeleteRequest(project.id); }}
-            disabled={deletingId === project.id}
-            aria-label={`Delete ${project.name}`}
-            className="sm:hidden shrink-0 text-destructive/70 hover:text-destructive p-1 rounded focus:outline-none"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6l-1 14H6L5 6" />
-              <path d="M10 11v6M14 11v6" />
-              <path d="M9 6V4h6v2" />
-            </svg>
-          </button>
+          {/* Mobile: archive + delete icons always visible */}
+          <div className="sm:hidden flex items-center gap-1 shrink-0">
+            <button
+              onClick={(e) => { e.preventDefault(); onArchive(project.id); }}
+              aria-label={`Archive ${project.name}`}
+              className="text-muted-foreground/70 hover:text-foreground p-1 rounded focus:outline-none"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="21 8 21 21 3 21 3 8" />
+                <rect x="1" y="3" width="22" height="5" />
+                <line x1="10" y1="12" x2="14" y2="12" />
+              </svg>
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); onDeleteRequest(project.id); }}
+              disabled={deletingId === project.id}
+              aria-label={`Delete ${project.name}`}
+              className="text-destructive/70 hover:text-destructive p-1 rounded focus:outline-none"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14H6L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4h6v2" />
+              </svg>
+            </button>
+          </div>
 
           {/* Desktop: rename + archive + delete on hover */}
           <div className="hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
