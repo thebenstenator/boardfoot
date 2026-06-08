@@ -310,6 +310,18 @@ export function DashboardContent({ initialProjects, tier, needsDemoSeed }: Dashb
                         </span>
                       </div>
                     </Link>
+                    {/* Mobile: restore icon always visible */}
+                    <button
+                      onClick={(e) => { e.preventDefault(); handleUnarchive(project.id); }}
+                      aria-label={`Restore ${project.name}`}
+                      className="sm:hidden shrink-0 text-muted-foreground/70 hover:text-foreground p-1 rounded focus:outline-none"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="1 4 1 10 7 10" />
+                        <path d="M3.51 15a9 9 0 1 0 .49-4.5" />
+                      </svg>
+                    </button>
+
                     <div className="hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                       <button
                         onClick={(e) => { e.preventDefault(); handleUnarchive(project.id); }}
