@@ -106,6 +106,7 @@ export function DashboardContent({ initialProjects, tier, needsDemoSeed }: Dashb
     const supabase = createClient();
     await supabase.from("projects").update({ status: "archived" }).eq("id", id);
     setProjects((prev) => prev.filter((p) => p.id !== id));
+    if (project) setArchivedProjects((prev) => [{ ...project, status: "archived" }, ...prev]);
     toast.success(`"${project?.name ?? "Project"}" archived`);
   }
 
