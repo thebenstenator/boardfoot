@@ -113,8 +113,8 @@ export function TaxReportUploadButton({ userId, projects }: TaxReportUploadButto
       user_id: userId,
       storage_path: storagePath,
       description: description || file.name,
-      amount: parseFloat(amount) || null,
-      tax_amount: parseFloat(taxAmount) || null,
+      amount: amount === "" ? null : parseFloat(amount),
+      tax_amount: taxAmount === "" ? null : parseFloat(taxAmount),
       receipt_date: receiptDate || null,
     };
     if (projectId) insertPayload.project_id = projectId;

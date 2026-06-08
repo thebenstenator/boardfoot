@@ -3,6 +3,7 @@
 import { useProjectLabor } from "@/hooks/useLineItems";
 import { useProjectStore } from "@/store/projectStore";
 import { useSubscription } from "@/hooks/useSubscription";
+import { formatCurrency } from "@/lib/utils";
 import { CurrencyCell } from "@/components/bom/BomCells";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { useState } from "react";
@@ -18,9 +19,6 @@ export function LaborSection({ projectId }: LaborSectionProps) {
   const profile = useProjectStore((state) => state.profile);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  function formatCurrency(n: number) {
-    return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
-  }
 
   if (!isPro) {
     return (

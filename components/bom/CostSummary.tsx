@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useProjectStore } from '@/store/projectStore'
 import { useUserStore } from '@/store/userStore'
 import { useSubscription } from '@/hooks/useSubscription'
+import { formatCurrency } from '@/lib/utils'
 import { calculateEtsyFees } from '@/lib/calculations/etsyFees'
 
 export function CostSummary() {
@@ -28,9 +29,6 @@ export function CostSummary() {
     }
   }, [totals])
 
-  function formatCurrency(n: number) {
-    return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-  }
 
   function formatPercent(n: number) {
     return `${parseFloat((n * 100).toFixed(3))}%`

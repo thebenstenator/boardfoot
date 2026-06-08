@@ -58,19 +58,11 @@ export function DashboardContent({ initialProjects, tier, needsDemoSeed }: Dashb
   }, [renamingId]);
 
   async function handleCreateProject() {
-    if (tier === "free" && projects.length >= 3) {
-      setShowUpgrade(true);
-      return;
-    }
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data: project } = await supabase
-      .from("projects")
-      .insert({ user_id: user.id, name: "Untitled Project" })
-      .select()
-      .single();
-    if (project) router.push(`/projects/${project.id}`);
+    const res = await fetch("/api/projects/create", { method: "POST" });
+    if (res.status === 402) { setShowUpgrade(true); return; }
+    if (!res.ok) return;
+    const { projectId } = await res.json();
+    router.push(`/projects/${projectId}`);
   }
 
   function handleOpenAiModal() {

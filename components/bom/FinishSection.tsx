@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import { useFinishItems } from "@/hooks/useLineItems";
 import { useProjectStore } from "@/store/projectStore";
+import { formatCurrency } from "@/lib/utils";
 import type { FinishItem } from "@/types/bom";
 import { Button } from "@/components/ui/button";
 import { EditableCell, CurrencyCell, DescriptionCell, SortableHeader, type SortState } from "@/components/bom/BomCells";
@@ -127,9 +128,6 @@ export function FinishSection({ projectId }: FinishSectionProps) {
     updateItem(item.id, { container_size, fraction_used });
   }
 
-  function formatCurrency(n: number) {
-    return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
-  }
 
   return (
     <div className={bomSection}>

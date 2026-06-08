@@ -108,7 +108,7 @@ export function ReceiptUpload({ projectId, userId }: ReceiptUploadProps) {
     const supabase = createClient();
     const numericFields: Array<keyof ProjectReceipt> = ["amount", "tax_amount"];
     const patch = {
-      [field]: numericFields.includes(field) ? (parseFloat(value) || null) : value || null,
+      [field]: numericFields.includes(field) ? (value === "" ? null : parseFloat(value)) : value || null,
     };
     setReceipts((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
     await supabase.from("project_receipts").update(patch).eq("id", id);

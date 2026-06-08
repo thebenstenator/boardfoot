@@ -438,11 +438,11 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const supabase = createClient()
 
     const [
-      { data: project },
-      { data: lumberItems },
-      { data: hardwareItems },
-      { data: finishItems },
-      { data: cutParts },
+      { data: project, error: projectError },
+      { data: lumberItems, error: lumberError },
+      { data: hardwareItems, error: hardwareError },
+      { data: finishItems, error: finishError },
+      { data: cutParts, error: cutPartsError },
       { data: labor },
     ] = await Promise.all([
       supabase.from('projects').select('*').eq('id', projectId).single(),
@@ -452,6 +452,12 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       supabase.from('cut_parts').select('*').eq('project_id', projectId).order('sort_order'),
       supabase.from('project_labor').select('*').eq('project_id', projectId).maybeSingle(),
     ])
+
+    if (projectError) console.error('Failed to load project:', projectError)
+    if (lumberError) console.error('Failed to load lumber items:', lumberError)
+    if (hardwareError) console.error('Failed to load hardware items:', hardwareError)
+    if (finishError) console.error('Failed to load finish items:', finishError)
+    if (cutPartsError) console.error('Failed to load cut parts:', cutPartsError)
 
     if (!project) {
       set({ isLoading: false })

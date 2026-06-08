@@ -6,6 +6,7 @@ import {
   calculateBoardFeetFlexible,
   convertLFtoBFPrice,
 } from "@/lib/calculations/boardFeet";
+import { formatCurrency } from "@/lib/utils";
 import { useProjectStore } from "@/store/projectStore";
 import { EditableCell, CurrencyCell, SortableHeader, type SortState } from "@/components/bom/BomCells";
 import { SortableRow, DragHandle } from "@/components/bom/SortableRow";
@@ -173,9 +174,6 @@ export function LumberSection({ projectId }: LumberSectionProps) {
     return bf * item.price_per_unit;
   }
 
-  function formatCurrency(n: number) {
-    return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
-  }
 
   return (
     <div className={bomSection}>

@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     .single()
 
   if (profile?.subscription_tier === 'free' && (count ?? 0) >= 3) {
-    return NextResponse.redirect(new URL('/dashboard?upgrade=true', request.url))
+    return NextResponse.json({ error: 'upgrade_required' }, { status: 402 })
   }
 
   const { data: project, error } = await supabase
@@ -39,5 +39,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.redirect(new URL(`/projects/${project.id}`, request.url))
+  return NextResponse.json({ projectId: project.id }, { status: 201 })
 }

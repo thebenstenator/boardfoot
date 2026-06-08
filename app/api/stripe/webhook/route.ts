@@ -30,6 +30,9 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
+  // NOTE: These handlers are not idempotent against out-of-order delivery. For full
+  // protection, add a `processed_webhook_events` table keyed on event.id, or store
+  // `subscription_tier_updated_at` on profiles and skip writes where event.created is older.
   switch (event.type) {
     case "customer.subscription.created":
     case "customer.subscription.updated": {

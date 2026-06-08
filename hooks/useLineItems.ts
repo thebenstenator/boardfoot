@@ -95,23 +95,6 @@ export function useLumberItems(projectId: string) {
     addLumberItem(pending.item);
   }, [addLumberItem]);
 
-  const reorderItem = useCallback(async (id: string, direction: 'up' | 'down') => {
-    const sorted = [...lumberItems].sort((a, b) => a.sort_order - b.sort_order);
-    const idx = sorted.findIndex(i => i.id === id);
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
-    const item = sorted[idx];
-    const swap = sorted[swapIdx];
-    updateLumberItem(id, { sort_order: swap.sort_order });
-    updateLumberItem(swap.id, { sort_order: item.sort_order });
-    useProjectStore.getState().startSave();
-    await Promise.all([
-      supabase.from('lumber_items').update({ sort_order: swap.sort_order }).eq('id', id),
-      supabase.from('lumber_items').update({ sort_order: item.sort_order }).eq('id', swap.id),
-    ]);
-    useProjectStore.getState().endSave();
-  }, [lumberItems, updateLumberItem, supabase]);
-
   const reorderItems = useCallback(async (newIds: string[]) => {
     newIds.forEach((id, i) => updateLumberItem(id, { sort_order: i }));
     useProjectStore.getState().startSave();
@@ -127,7 +110,6 @@ export function useLumberItems(projectId: string) {
     updateItem,
     removeItem,
     undoRemove,
-    reorderItem,
     reorderItems,
   };
 }
@@ -216,23 +198,6 @@ export function useHardwareItems(projectId: string) {
     addHardwareItem(pending.item);
   }, [addHardwareItem]);
 
-  const reorderItem = useCallback(async (id: string, direction: 'up' | 'down') => {
-    const sorted = [...hardwareItems].sort((a, b) => a.sort_order - b.sort_order);
-    const idx = sorted.findIndex(i => i.id === id);
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
-    const item = sorted[idx];
-    const swap = sorted[swapIdx];
-    updateHardwareItem(id, { sort_order: swap.sort_order });
-    updateHardwareItem(swap.id, { sort_order: item.sort_order });
-    useProjectStore.getState().startSave();
-    await Promise.all([
-      supabase.from('hardware_items').update({ sort_order: swap.sort_order }).eq('id', id),
-      supabase.from('hardware_items').update({ sort_order: item.sort_order }).eq('id', swap.id),
-    ]);
-    useProjectStore.getState().endSave();
-  }, [hardwareItems, updateHardwareItem, supabase]);
-
   const reorderItems = useCallback(async (newIds: string[]) => {
     newIds.forEach((id, i) => updateHardwareItem(id, { sort_order: i }));
     useProjectStore.getState().startSave();
@@ -248,7 +213,6 @@ export function useHardwareItems(projectId: string) {
     updateItem,
     removeItem,
     undoRemove,
-    reorderItem,
     reorderItems,
   };
 }
@@ -332,23 +296,6 @@ export function useFinishItems(projectId: string) {
     addFinishItem(pending.item);
   }, [addFinishItem]);
 
-  const reorderItem = useCallback(async (id: string, direction: 'up' | 'down') => {
-    const sorted = [...finishItems].sort((a, b) => a.sort_order - b.sort_order);
-    const idx = sorted.findIndex(i => i.id === id);
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
-    const item = sorted[idx];
-    const swap = sorted[swapIdx];
-    updateFinishItem(id, { sort_order: swap.sort_order });
-    updateFinishItem(swap.id, { sort_order: item.sort_order });
-    useProjectStore.getState().startSave();
-    await Promise.all([
-      supabase.from('finish_items').update({ sort_order: swap.sort_order }).eq('id', id),
-      supabase.from('finish_items').update({ sort_order: item.sort_order }).eq('id', swap.id),
-    ]);
-    useProjectStore.getState().endSave();
-  }, [finishItems, updateFinishItem, supabase]);
-
   const reorderItems = useCallback(async (newIds: string[]) => {
     newIds.forEach((id, i) => updateFinishItem(id, { sort_order: i }));
     useProjectStore.getState().startSave();
@@ -364,7 +311,6 @@ export function useFinishItems(projectId: string) {
     updateItem,
     removeItem,
     undoRemove,
-    reorderItem,
     reorderItems,
   };
 }
@@ -472,23 +418,6 @@ export function useCutParts(projectId: string) {
     addCutPart(pending.item);
   }, [addCutPart]);
 
-  const reorderItem = useCallback(async (id: string, direction: 'up' | 'down') => {
-    const sorted = [...cutParts].sort((a, b) => a.sort_order - b.sort_order);
-    const idx = sorted.findIndex(i => i.id === id);
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
-    const item = sorted[idx];
-    const swap = sorted[swapIdx];
-    updateCutPart(id, { sort_order: swap.sort_order });
-    updateCutPart(swap.id, { sort_order: item.sort_order });
-    useProjectStore.getState().startSave();
-    await Promise.all([
-      supabase.from('cut_parts').update({ sort_order: swap.sort_order }).eq('id', id),
-      supabase.from('cut_parts').update({ sort_order: item.sort_order }).eq('id', swap.id),
-    ]);
-    useProjectStore.getState().endSave();
-  }, [cutParts, updateCutPart, supabase]);
-
   const reorderItems = useCallback(async (newIds: string[]) => {
     newIds.forEach((id, i) => updateCutPart(id, { sort_order: i }));
     useProjectStore.getState().startSave();
@@ -498,5 +427,5 @@ export function useCutParts(projectId: string) {
     useProjectStore.getState().endSave();
   }, [updateCutPart, supabase]);
 
-  return { items: cutParts, addItem, updateItem, removeItem, undoRemove, reorderItem, reorderItems };
+  return { items: cutParts, addItem, updateItem, removeItem, undoRemove, reorderItems };
 }
